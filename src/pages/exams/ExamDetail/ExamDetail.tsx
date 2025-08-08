@@ -11,7 +11,7 @@ import { useClassState } from "../../../stores/classStore";
 import ExamGroupForm from "../../../components/forms/ExamGroupForm/ExamGroupForm";
 
 const ExamDetail: React.FC = () => {
-    const { id, exam_id } = useParams();
+    const { id, exam_group_id } = useParams();
     const { examSelecting, getExam, getExamDetailList, examDetailList } = useExamState();
     const { classSelecting } = useClassState();
     const [openForm, setOpenForm] = useState(false);
@@ -19,8 +19,8 @@ const ExamDetail: React.FC = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        getExam(Number(exam_id));
-        getExamDetailList(Number(exam_id));
+        getExam(Number(exam_group_id));
+        getExamDetailList(Number(exam_group_id));
     }, []);
 
     const formatDateTime = (dateTime: string) => {
@@ -32,9 +32,9 @@ const ExamDetail: React.FC = () => {
         <Box sx={{ p: { xs: 2, md: 3 } }}>
             {/* Breadcrumb */}
             <Breadcrumbs sx={{ mb: 3 }}>
-                <Link 
-                    underline="hover" 
-                    color="inherit" 
+                <Link
+                    underline="hover"
+                    color="inherit"
                     sx={{ cursor: "pointer" }}
                     onClick={() => navigate(-1)}
                     fontSize={"1.6rem"}
@@ -50,32 +50,32 @@ const ExamDetail: React.FC = () => {
                 <CardContent sx={{ p: { xs: 2, md: 3 } }}>
                     <Grid container spacing={3} sx={{ alignItems: "flex-start" }}>
                         <Grid size={{ xs: 12, lg: 8 }}>
-                            <Typography 
-                                variant="h5" 
-                                sx={{ 
-                                    fontWeight: "bold", 
-                                    color: "#444", 
+                            <Typography
+                                variant="h5"
+                                sx={{
+                                    fontWeight: "bold",
+                                    color: "#444",
                                     mb: 2,
                                     fontSize: { xs: "1.6rem", md: "1.9rem" }
                                 }}
                             >
                                 {examSelecting.name || "Tên bài thi"}
                             </Typography>
-                            <Typography 
-                                variant="body1" 
-                                sx={{ 
-                                    fontWeight: "600", 
-                                    color: "#666", 
+                            <Typography
+                                variant="body1"
+                                sx={{
+                                    fontWeight: "600",
+                                    color: "#666",
                                     mb: 1,
                                     fontSize: { xs: "1.5rem", md: "1.6rem" }
                                 }}
                             >
                                 <strong>Ngày bắt đầu:</strong> {formatDateTime(examSelecting.start_time)}
                             </Typography>
-                            <Typography 
-                                variant="body1" 
-                                sx={{ 
-                                    fontWeight: "600", 
+                            <Typography
+                                variant="body1"
+                                sx={{
+                                    fontWeight: "600",
                                     color: "#666",
                                     fontSize: { xs: "1.5rem", md: "1.6rem" }
                                 }}
@@ -83,30 +83,30 @@ const ExamDetail: React.FC = () => {
                                 <strong>Thời gian chờ:</strong> {examSelecting.await_time ? `${examSelecting.await_time / 60} phút` : "Chưa thiết lập"}
                             </Typography>
                         </Grid>
-                        
+
                         <Grid size={{ xs: 12, lg: 4 }}>
-                            <Box sx={{ 
-                                display: "flex", 
-                                gap: 2, 
+                            <Box sx={{
+                                display: "flex",
+                                gap: 2,
                                 flexDirection: { xs: "column", sm: "row", lg: "row" },
                                 justifyContent: { xs: "center", lg: "flex-end" },
-                                alignItems:"end"
+                                alignItems: "end"
                             }}>
-                                <Button 
-                                    variant="contained" 
+                                <Button
+                                    variant="contained"
                                     color="success"
                                     startIcon={<EditIcon />}
-                                    onClick={() => {setAction("edit"); setOpenForm(true)}}
-                                    sx={{ minWidth: "120px", maxWidth:"140px" }}
+                                    onClick={() => { setAction("edit"); setOpenForm(true) }}
+                                    sx={{ minWidth: "120px", maxWidth: "140px" }}
                                 >
                                     Chỉnh sửa
                                 </Button>
-                                <Button 
-                                    variant="outlined" 
+                                <Button
+                                    variant="outlined"
                                     color="error"
                                     startIcon={<DeleteIcon />}
-                                    onClick={() => {setAction("delete"); setOpenForm(true)}}
-                                    sx={{ minWidth: "120px", maxWidth:"140px" }}
+                                    onClick={() => { setAction("delete"); setOpenForm(true) }}
+                                    sx={{ minWidth: "120px", maxWidth: "140px" }}
                                 >
                                     Xóa bỏ
                                 </Button>
@@ -118,25 +118,25 @@ const ExamDetail: React.FC = () => {
 
             {/* Question List Section */}
             <Box sx={{ mb: 4 }}>
-                <Box sx={{ 
-                    display: "flex", 
-                    justifyContent: "space-between", 
-                    alignItems: "center", 
+                <Box sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
                     mb: 3,
                     flexDirection: { xs: "column", sm: "row" },
                     gap: 2
                 }}>
-                    <Typography 
-                        variant="h5" 
-                        sx={{ 
-                            fontWeight: "bold", 
+                    <Typography
+                        variant="h5"
+                        sx={{
+                            fontWeight: "bold",
                             color: "#2b6cb0",
                             fontSize: { xs: "1.4rem", md: "1.8rem" }
                         }}
                     >
                         Danh sách đề bài ({examDetailList.length})
                     </Typography>
-                    <Button 
+                    <Button
                         variant="contained"
                         startIcon={<AddIcon />}
                         onClick={() => navigate(`create`)}
@@ -155,10 +155,10 @@ const ExamDetail: React.FC = () => {
                         ))}
                     </Grid>
                 ) : (
-                    <Box 
-                        sx={{ 
-                            textAlign: "center", 
-                            py: 4, 
+                    <Box
+                        sx={{
+                            textAlign: "center",
+                            py: 4,
                             color: "text.secondary",
                             bgcolor: "grey.50",
                             borderRadius: 2
@@ -171,11 +171,11 @@ const ExamDetail: React.FC = () => {
 
             {/* Assignment List Section */}
             <Box>
-                <Typography 
-                    variant="h5" 
-                    sx={{ 
-                        fontWeight: "bold", 
-                        color: "#2b6cb0", 
+                <Typography
+                    variant="h5"
+                    sx={{
+                        fontWeight: "bold",
+                        color: "#2b6cb0",
                         mb: 3,
                         fontSize: { xs: "1.4rem", md: "1.8rem" }
                     }}
@@ -192,10 +192,10 @@ const ExamDetail: React.FC = () => {
                         ))}
                     </Grid>
                 ) : (
-                    <Box 
-                        sx={{ 
-                            textAlign: "center", 
-                            py: 4, 
+                    <Box
+                        sx={{
+                            textAlign: "center",
+                            py: 4,
                             color: "text.secondary",
                             bgcolor: "grey.50",
                             borderRadius: 2
@@ -207,11 +207,11 @@ const ExamDetail: React.FC = () => {
             </Box>
 
             {/* Form Dialog */}
-            <ExamGroupForm 
-                open={openForm} 
-                setOpen={setOpenForm} 
-                action={action} 
-                exam={examSelecting} 
+            <ExamGroupForm
+                open={openForm}
+                setOpen={setOpenForm}
+                action={action}
+                exam={examSelecting}
             />
         </Box>
     );

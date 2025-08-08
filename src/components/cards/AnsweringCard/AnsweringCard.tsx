@@ -1,33 +1,42 @@
 import { Box, FormControlLabel, MenuItem, Radio, RadioGroup, Select, TextField } from "@mui/material"
-import { memo, useState } from "react";
+import { memo, useState, useEffect, useRef } from "react";
 
-const AnsweringCard = memo(({ questionIndex, onQuestionChange }) => {
+const AnsweringCard = memo(({ questionIndex, onQuestionChange, initialData }) => {
     const [questionType, setQuestionType] = useState('single-choice');
-    const [questionText, setQuestionText] = useState('');
     const [correctAnswer, setCorrectAnswer] = useState('');
+    const isInitialized = useRef(false);
+
+    // Initialize state with data from API when editing (chỉ chạy một lần)
+    useEffect(() => {
+        if (initialData && !isInitialized.current) {
+            console.log(`Initializing question ${questionIndex} with data:`, initialData);
+            
+            setQuestionType(initialData.type || 'single-choice');
+            setCorrectAnswer(initialData.correct_answer || '');
+            
+            isInitialized.current = true;
+        }
+    }, [initialData, questionIndex]);
+
+    // Notify parent về thay đổi (tách riêng để tránh loop)
+    const notifyChange = (newData) => {
+        onQuestionChange(questionIndex, {
+            id: initialData?.id || null,
+            ...newData
+        });
+    };
 
     const handleTypeChange = (event) => {
         const newType = event.target.value;
         setQuestionType(newType);
         setCorrectAnswer('');
 
-        onQuestionChange(questionIndex, {
+        notifyChange({
             type: newType,
-            question: questionText,
             correct_answer: ''
         });
     };
 
-    const handleQuestionTextChange = (event) => {
-        const newText = event.target.value;
-        setQuestionText(newText);
-
-        onQuestionChange(questionIndex, {
-            type: questionType,
-            question: newText,
-            correct_answer: correctAnswer
-        });
-    };
 
     const handleCorrectAnswerChange = (event) => {
         let newCorrectAnswer;
@@ -47,9 +56,8 @@ const AnsweringCard = memo(({ questionIndex, onQuestionChange }) => {
 
         setCorrectAnswer(newCorrectAnswer);
 
-        onQuestionChange(questionIndex, {
+        notifyChange({
             type: questionType,
-            question: questionText,
             correct_answer: newCorrectAnswer
         });
     };
@@ -60,19 +68,22 @@ const AnsweringCard = memo(({ questionIndex, onQuestionChange }) => {
             borderRadius: 1,
             p: 1,
             backgroundColor: '#fafafa',
-            width: "100%"
+            width: "100%",
+            mb: 2
         }}>
             {/* Header row - Question number and type selector */}
             <Box sx={{
                 display: 'flex',
-                alignItems: 'center',
+                alignItems: 'flex-start',
                 gap: 2,
+                mb: 2
             }}>
                 <Box sx={{
                     fontWeight: 'bold',
-                    maxWidth: '50px',
+                    maxWidth: '80px',
                     flexShrink: 0,
                     color: '#495057',
+                    pt: 1
                 }}>
                     Câu {questionIndex + 1}:
                 </Box>
@@ -81,14 +92,14 @@ const AnsweringCard = memo(({ questionIndex, onQuestionChange }) => {
                     value={questionType}
                     onChange={handleTypeChange}
                     sx={{
-                        maxWidth: 125,
-                        minWidth: 125,                        
+                        maxWidth: 140,
+                        minWidth: 140,                        
                         flexShrink: 0,
                         fontSize: "1.3rem",
                         height: "40px",
                         '& .MuiSelect-select': {
                             padding: '6px 10px',
-                            fontSize: "1.3rem",
+                            fontSize: "1.2rem",
                             fontWeight: 500
                         },
                         '& .MuiOutlinedInput-notchedOutline': {
@@ -107,8 +118,8 @@ const AnsweringCard = memo(({ questionIndex, onQuestionChange }) => {
                     <MenuItem
                         value="single-choice"
                         sx={{
-                            fontSize: "1.3rem",
-                            padding: '10px 16px'
+                            fontSize: "1.2rem",
+                            padding: '8px 16px'
                         }}
                     >
                         1 đáp án
@@ -116,8 +127,8 @@ const AnsweringCard = memo(({ questionIndex, onQuestionChange }) => {
                     <MenuItem
                         value="multiple-choice"
                         sx={{
-                            fontSize: "1.3rem",
-                            padding: '10px 16px'
+                            fontSize: "1.2rem",
+                            padding: '8px 16px'
                         }}
                     >
                         Nhiều đáp án
@@ -125,43 +136,45 @@ const AnsweringCard = memo(({ questionIndex, onQuestionChange }) => {
                     <MenuItem
                         value="long-response"
                         sx={{
-                            fontSize: "1.3rem",
-                            padding: '10px 16px'
+                            fontSize: "1.2rem",
+                            padding: '8px 16px'
                         }}
                     >
                         Tự luận
                     </MenuItem>
                 </Select>
-                {/* Answer section */}
-                <Box sx={{
-                    width: '100%',
-                    backgroundColor: '#f8f9fa',
-                    borderRadius: 1,
-                    p: 1,
-                    border: '1px solid #e9ecef'
-                }}>
-                    {questionType === 'long-response' ? (
-                        <Box>
-                            <Box sx={{
-                                fontSize: '1.4rem',
-                                color: '#495057',
-                                m: 1,
-                                fontWeight: 600
-                            }}>
-                                Đáp án mẫu:
-                            </Box>
-                            <TextField
+            </Box>
+
+            {/* Answer section */}
+            <Box sx={{
+                width: '100%',
+                backgroundColor: '#f8f9fa',
+                borderRadius: 1,
+                p: 2,
+                border: '1px solid #e9ecef'
+            }}>
+                {questionType === 'long-response' ? (
+                    <Box>
+                        <Box sx={{
+                            fontSize: '1.1rem',
+                            color: '#495057',
+                            mb: 1,
+                            fontWeight: 600
+                        }}>
+                            Đáp án mẫu:
+                        </Box>
+                        <TextField
                             fullWidth
                             multiline
                             rows={2}
                             placeholder="Nhập đáp án mẫu (không bắt buộc)..."
                             value={correctAnswer}
                             onChange={(e) => {
-                                setCorrectAnswer(e.target.value);
-                                onQuestionChange(questionIndex, {
+                                const value = e.target.value;
+                                setCorrectAnswer(value);
+                                notifyChange({
                                     type: questionType,
-                                    question: questionText,
-                                    correct_answer: e.target.value
+                                    correct_answer: value
                                 });
                             }}
                             sx={{
@@ -170,7 +183,7 @@ const AnsweringCard = memo(({ questionIndex, onQuestionChange }) => {
                                     fontSize: '0.95rem',
                                     borderRadius: 1,
                                     '& fieldset': {
-                                        borderColor: '#555'
+                                        borderColor: '#ddd'
                                     },
                                     '&:hover fieldset': {
                                         borderColor: '#1976d2'
@@ -179,112 +192,106 @@ const AnsweringCard = memo(({ questionIndex, onQuestionChange }) => {
                                         borderColor: '#1976d2',
                                         borderWidth: '2px'
                                     },
-                                    '& input::placeholder': {
-                                        fontSize: '1.2rem',
-                                        color: '#555'
-                                    },
                                     '& textarea::placeholder': {
-                                        fontSize: '1.2rem',
-                                        color: '#555'
+                                        fontSize: '0.95rem',
+                                        color: '#999'
                                     }
                                 }
                             }}
                         />
+                    </Box>
+                ) : (
+                    <Box>
+                        <Box sx={{
+                            fontSize: '1.1rem',
+                            color: '#495057',
+                            mb: 2,
+                            fontWeight: 600
+                        }}>
+                            Chọn đáp án đúng:
                         </Box>
-                    ) : (
-                        <Box>
-                            <Box sx={{
-                                fontSize: '1.4rem',
-                                color: '#495057',
-                                mb: 1,
-                                fontWeight: 600
-                            }}>
-                                Chọn đáp án đúng:
-                            </Box>
-                            <Box sx={{
-                                display: 'flex',
-                                gap: 2,
-                                alignItems: 'center'
-                            }}>
-                                {questionType === 'single-choice' ? (
-                                    <RadioGroup
-                                        row
-                                        value={correctAnswer}
-                                        onChange={handleCorrectAnswerChange}
-                                        sx={{
-                                            display: 'flex',
-                                            gap: 2
-                                        }}
-                                    >
-                                        {['A', 'B', 'C', 'D'].map((option) => (
-                                            <FormControlLabel
-                                                key={option}
-                                                value={option}
-                                                control={
-                                                    <Radio
-                                                        sx={{
-                                                            '&.Mui-checked': {
-                                                                color: '#1976d2'
-                                                            }
-                                                        }}
-                                                    />
-                                                }
-                                                label={option}
-                                                sx={{
-                                                    margin: 0,
-                                                    '& .MuiFormControlLabel-label': {
-                                                        fontSize: '1.3rem',
-                                                        fontWeight: 500,
-                                                        color: '#495057'
-                                                    },
-                                                    
-                                                }}
-                                            />
-                                        ))}
-                                    </RadioGroup>
-                                ) : (
-                                    <Box sx={{
+                        <Box sx={{
+                            display: 'flex',
+                            gap: 3,
+                            alignItems: 'center',
+                            flexWrap: 'wrap'
+                        }}>
+                            {questionType === 'single-choice' ? (
+                                <RadioGroup
+                                    row
+                                    value={correctAnswer}
+                                    onChange={handleCorrectAnswerChange}
+                                    sx={{
                                         display: 'flex',
-                                        gap: 2
-                                    }}>
-                                        {['A', 'B', 'C', 'D'].map((option) => (
-                                            <FormControlLabel
-                                                key={option}
-                                                control={
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={correctAnswer.split(',').includes(option)}
-                                                        onChange={handleCorrectAnswerChange}
-                                                        value={option}
-                                                        style={{
-                                                            margin: '0 8px 0 0',
-                                                            transform: 'scale(1.1)',
-                                                            accentColor: '#1976d2'
-                                                        }}
-                                                    />
+                                        gap: 3
+                                    }}
+                                >
+                                    {['A', 'B', 'C', 'D'].map((option) => (
+                                        <FormControlLabel
+                                            key={option}
+                                            value={option}
+                                            control={
+                                                <Radio
+                                                    sx={{
+                                                        '&.Mui-checked': {
+                                                            color: '#1976d2'
+                                                        }
+                                                    }}
+                                                />
+                                            }
+                                            label={option}
+                                            sx={{
+                                                margin: 0,
+                                                '& .MuiFormControlLabel-label': {
+                                                    fontSize: '1.1rem',
+                                                    fontWeight: 500,
+                                                    color: '#495057'
                                                 }
-                                                label={option}
-                                                sx={{
-                                                    margin: 0,
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    '& .MuiFormControlLabel-label': {
-                                                        fontSize: '1.3rem',
-                                                        fontWeight: 500,
-                                                        color: '#495057'
-                                                    }
-                                                }}
-                                            />
-                                        ))}
-                                    </Box>
-                                )}
-                            </Box>
+                                            }}
+                                        />
+                                    ))}
+                                </RadioGroup>
+                            ) : (
+                                <Box sx={{
+                                    display: 'flex',
+                                    gap: 3,
+                                    flexWrap: 'wrap'
+                                }}>
+                                    {['A', 'B', 'C', 'D'].map((option) => (
+                                        <FormControlLabel
+                                            key={option}
+                                            control={
+                                                <input
+                                                    type="checkbox"
+                                                    checked={correctAnswer.split(',').includes(option)}
+                                                    onChange={handleCorrectAnswerChange}
+                                                    value={option}
+                                                    style={{
+                                                        margin: '0 8px 0 0',
+                                                        transform: 'scale(1.2)',
+                                                        accentColor: '#1976d2'
+                                                    }}
+                                                />
+                                            }
+                                            label={option}
+                                            sx={{
+                                                margin: 0,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                '& .MuiFormControlLabel-label': {
+                                                    fontSize: '1.1rem',
+                                                    fontWeight: 500,
+                                                    color: '#495057'
+                                                }
+                                            }}
+                                        />
+                                    ))}
+                                </Box>
+                            )}
                         </Box>
-                    )}
-                </Box>
+                    </Box>
+                )}
             </Box>
-
-
         </Box>
     );
 });

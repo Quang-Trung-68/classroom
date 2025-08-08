@@ -1,8 +1,10 @@
 import { Box, Button } from "@mui/material"
 import EditingPen from '@mui/icons-material/BorderColor';
+import { useNavigate } from "react-router-dom";
 
 interface QuestionCardProps {
     exam: {
+        id: number;
         name: string;
         code: string;
         total_time: number;
@@ -11,6 +13,10 @@ interface QuestionCardProps {
 }
 
 const QuestionCard: React.FC<QuestionCardProps> = ({ exam }) => {
+    const navigate = useNavigate();
+    const onEdit = ()=>{
+        navigate(`${exam.id}`);
+    }
     return (
         <Box sx={{
             display: "flex", 
@@ -25,7 +31,9 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ exam }) => {
             <Box sx={{ display: "flex", alignSelf: "stretch", alignItems: "start", justifyContent: "space-between" }}>
                 <Box>ĐỀ BÀI: {exam.name}</Box>
                 <Box>
-                    <Button startIcon={<EditingPen />} variant="small" sx={{ fontSize: "1.2rem" }}>
+                    <Button
+                    onClick={onEdit}
+                    startIcon={<EditingPen />} variant="small" sx={{ fontSize: "1.2rem" }}>
                         Edit
                     </Button>
                 </Box>

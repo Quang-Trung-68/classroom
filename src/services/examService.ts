@@ -85,6 +85,19 @@ export const examService = {
       stopLoading();
     }
   },
+  getExamDetail: async (id: number): Promise<ExamDetailResponseI> => {
+    const { startLoading, stopLoading } = useLoadingStore.getState();
+    try {
+      startLoading();
+      const response = await api.get(`exam/${id}`);
+      return response.data;
+    } catch (error) {
+      console.log(error);
+      throw new Error();
+    } finally {
+      stopLoading();
+    }
+  },
   createExam: async (formData: ExamCreatePayloadI): Promise<void> => {
     const { startLoading, stopLoading } = useLoadingStore.getState();
     try {

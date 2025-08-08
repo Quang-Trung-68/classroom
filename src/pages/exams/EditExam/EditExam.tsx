@@ -1,11 +1,11 @@
-import React, { memo, useRef, useState } from "react";
+import React, { memo, useEffect, useRef, useState } from "react";
 import { Box, Button, Grid, TextField } from "@mui/material";
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import AnsweringCard from "../../../components/cards/AnsweringCard/AnsweringCard";
 import { useExamState } from "../../../stores/examStore";
 import { useNavigate, useParams } from "react-router-dom";
 
-const RenderQuestions = memo(({ count, onQuestionsChange }) => {
+const RenderQuestions = memo(({ count, onQuestionsChange, questionsData }) => {
     return (
         <>
             {Array.from({ length: count }, (_, index) => (
@@ -13,18 +13,19 @@ const RenderQuestions = memo(({ count, onQuestionsChange }) => {
                     key={index}
                     questionIndex={index}
                     onQuestionChange={onQuestionsChange}
+                    initialData={questionsData[index] || null}
                 />
             ))}
         </>
     );
 });
 
-const CreateExam = () => {
+const EditExam = () => {
     const fileInputRef = useRef(null);
     const [selectedFile, setSelectedFile] = useState(null);
-    const { examSelecting, createExam } = useExamState();
+    const { examSelecting, createExam, getExamDetail, examDetail } = useExamState();
     const navigate = useNavigate()
-    const { id, exam_group_id } = useParams();
+    const { id, exam_group_id, exam_id } = useParams();
 
     // State cho form data
     const [examData, setExamData] = useState({
@@ -42,6 +43,58 @@ const CreateExam = () => {
             url: ""
         }
     });
+
+    useEffect(() => {
+        if (exam_id) {
+            getExamDetail(Number(exam_id));
+        }
+    }, [exam_id]);
+
+    // Update examData when examDetail changes (chỉ chạy một lần)
+    useEffect(() => {
+        if (examDetail && examDetail.id) {
+            console.log("Updating examData with:", examDetail);
+
+            // Tạo questions array với đầy đủ thông tin
+            const formattedQuestions = examDetail.questions?.map((q, index) => ({
+                id: q.id || null,
+                index: q.index !== undefined ? q.index : index,
+                type: q.type || 'single-choice',
+                question: q.question || '',
+                correct_answer: q.correct_answer || ''
+            })) || [];
+
+            setExamData({
+                id: examDetail.id,
+                exam_group: examDetail.exam_group?.toString() || String(examSelecting.id),
+                description: examDetail.description || "default",
+                name: examDetail.name || "",
+                code: examDetail.code || "",
+                total_time: examDetail.total_time || 0,
+                number_of_question: examDetail.number_of_question || 1,
+                questions: formattedQuestions,
+                file: {
+                    id: examDetail.file?.id || null,
+                    payload: examDetail.file?.payload || "",
+                    type: examDetail.file?.type || "",
+                    url: examDetail.file?.url || ""
+                }
+            });
+
+            // Nếu có file, set selectedFile để hiển thị thông tin
+            if (examDetail.file?.url) {
+                // Tạo một file object giả để hiển thị thông tin
+                const mockFile = {
+                    name: examDetail.file.key?.split('/').pop() || 'Uploaded file',
+                    size: 0, // Không có thông tin size từ API
+                    type: examDetail.file.type || 'unknown'
+                };
+                setSelectedFile(mockFile);
+            }
+        }
+    }, [examDetail?.id]); // Chỉ depend vào examDetail.id
+
+    console.log("Current examData:", examData);
 
     const handleUploadClick = () => {
         fileInputRef.current?.click();
@@ -101,9 +154,9 @@ const CreateExam = () => {
             setExamData(prev => ({
                 ...prev,
                 file: {
-                    id: null,
+                    id: null, // Reset id khi upload file mới
                     payload: base64String,
-                    type: file.type, // "application/pdf"
+                    type: file.type,
                     url: blobUrl
                 }
             }));
@@ -156,14 +209,19 @@ const CreateExam = () => {
                 [field]: value,
             };
 
-            // Khi thay đổi số câu hỏi, reset lại array questions
+            // Khi thay đổi số câu hỏi, cập nhật array questions
             if (field === 'number_of_question') {
-                newData.questions = Array(value).fill(null).map((_, index) => ({
-                    index,
-                    type: 'single-choice',
-                    question: '',
-                    correct_answer: ''
-                }));
+                const currentQuestions = prev.questions || [];
+                const newQuestions = Array(value).fill(null).map((_, index) => {
+                    // Giữ lại dữ liệu cũ nếu có, tạo mới nếu không
+                    return currentQuestions[index] || {
+                        index,
+                        type: 'single-choice',
+                        question: '',
+                        correct_answer: ''
+                    };
+                });
+                newData.questions = newQuestions;
             }
 
             return newData;
@@ -175,6 +233,7 @@ const CreateExam = () => {
         setExamData(prev => {
             const newQuestions = [...prev.questions];
             newQuestions[questionIndex] = {
+                ...newQuestions[questionIndex], // Giữ lại id nếu có
                 index: questionIndex,
                 ...questionData
             };
@@ -186,8 +245,8 @@ const CreateExam = () => {
         });
     };
 
-    const handleCreateExam = async () => {
-        console.log("Exam Data:", examData);
+    const handleUpdateExam = async () => {
+        console.log("Updating Exam Data:", examData);
         try {
             // Log thông tin file để debug
             if (examData.file.payload) {
@@ -198,14 +257,13 @@ const CreateExam = () => {
                 });
             }
 
-            // TODO: Gửi dữ liệu lên server
-            await createExam(examData)
+            // TODO: Gọi API update exam thay vì create
+            // await updateExam(examData)
         } catch (error) {
-            console.error("Error creating exam:", error);
-            alert("Có lỗi xảy ra khi tạo đề bài!");
-        }
-        finally {
-            navigate(`/classes/${id}/exams/${exam_group_id}`)
+            console.error("Error updating exam:", error);
+            alert("Có lỗi xảy ra khi cập nhật đề bài!");
+        } finally {
+            navigate(`/classes/${id}/exams/${exam_group_id}`);
         }
     };
 
@@ -213,7 +271,7 @@ const CreateExam = () => {
         setSelectedFile(null);
 
         // Cleanup blob URL để tránh memory leak
-        if (examData.file.url) {
+        if (examData.file.url && !examData.file.url.includes('amazonaws.com')) {
             URL.revokeObjectURL(examData.file.url);
         }
 
@@ -237,20 +295,17 @@ const CreateExam = () => {
     // Cleanup blob URL khi component unmount
     React.useEffect(() => {
         return () => {
-            if (examData.file.url) {
+            if (examData.file.url && !examData.file.url.includes('amazonaws.com')) {
                 URL.revokeObjectURL(examData.file.url);
             }
         };
     }, [examData.file.url]);
 
-
     return (
-
-
         <>
             <Grid container spacing={4} sx={{ alignItems: "center", justifyContent: "space-between" }}>
                 <Grid size={12}>
-                    Danh sách bài thi {">"} Đề thi lần 1 {">"} Thêm bài thi
+                    Danh sách bài thi {">"} Đề thi lần 1 {">"} Sửa bài thi
                 </Grid>
 
                 <Grid size={6}>
@@ -279,8 +334,10 @@ const CreateExam = () => {
                                 Đã chọn: <strong>{selectedFile.name}</strong>
                             </Box>
                             <Box sx={{ fontSize: '0.875rem', color: '#666', mt: 0.5 }}>
-                                Loại: {examData.file.type} |
-                                Kích thước: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                                Loại: {examData.file.type}
+                                {selectedFile.size > 0 && (
+                                    <>| Kích thước: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB</>
+                                )}
                             </Box>
                             {examData.file.payload && (
                                 <Box sx={{ fontSize: '0.75rem', color: '#888', mt: 0.5 }}>
@@ -373,6 +430,7 @@ const CreateExam = () => {
                         <RenderQuestions
                             count={examData.number_of_question}
                             onQuestionsChange={handleQuestionsChange}
+                            questionsData={examData.questions}
                         />
                     </Grid>
 
@@ -380,9 +438,9 @@ const CreateExam = () => {
                         <Box sx={{ display: "flex", justifyContent: "center" }}>
                             <Button
                                 variant="contained"
-                                onClick={handleCreateExam}
+                                onClick={handleUpdateExam}
                             >
-                                Tạo đề bài
+                                Cập nhật đề bài
                             </Button>
                         </Box>
                     </Grid>
@@ -392,4 +450,4 @@ const CreateExam = () => {
     );
 };
 
-export default CreateExam;
+export default EditExam;

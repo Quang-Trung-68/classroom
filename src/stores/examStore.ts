@@ -12,6 +12,7 @@ import type {
 interface ExamState {
   examGroupSelecting: ExamGroupI[];
   examSelecting: ExamResponseI;
+  examDetail: ExamDetailResponseI;
   examDetailList: ExamDetailResponseI[];
   getExamGroup: (id: number) => Promise<void>;
   clearExamGroup: () => void;
@@ -19,6 +20,7 @@ interface ExamState {
   updateExamGroup: (id: number, formData: ExamGroupCreateI) => Promise<void>;
   getExam: (id: number) => Promise<void>;
   getExamDetailList: (id: number) => Promise<void>;
+  getExamDetail: (id: number) => Promise<void>;
   createExam: (formData: ExamCreatePayloadI) => Promise<void>;
   clearExamState: () => void;
 }
@@ -37,6 +39,21 @@ export const useExamState = create<ExamState>((set, get) => ({
     users: [],
   },
   examDetailList: [],
+  examDetail: {
+    code: "",
+    description: null,
+    exam_group: 0,
+    file: {
+      id: 0,
+      key: "",
+      url: "",
+    },
+    id: 0,
+    name: "",
+    number_of_question: 0,
+    questions: [],
+    total_time: 0,
+  },
   getExamGroup: async (id: number) => {
     try {
       const data = await examService.getExamGroup(id);
@@ -81,6 +98,14 @@ export const useExamState = create<ExamState>((set, get) => ({
     try {
       const data = await examService.getExamDetailList(id);
       set({ examDetailList: data });
+    } catch (error) {
+      console.log(error);
+    }
+  },
+  getExamDetail: async (id: number) => {
+    try {
+      const data = await examService.getExamDetail(id);
+      set({ examDetail: data });
     } catch (error) {
       console.log(error);
     }

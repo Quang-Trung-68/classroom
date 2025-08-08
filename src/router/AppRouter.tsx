@@ -4,7 +4,7 @@ import {
   RouterProvider,
   Navigate,
 } from 'react-router-dom';
-import  Layout  from '../components/common/Layout/Layout';
+import Layout from '../components/common/Layout/Layout';
 import MainLayout from '../components/common/Layout/MainLayout';
 import AuthLayout from '../components/common/Layout/AuthLayout';
 import LandingPage from '../pages/landing/LandingPage';
@@ -18,6 +18,7 @@ import ExamDetail from '../pages/exams/ExamDetail/ExamDetail';
 import CreateExam from '../pages/exams/CreateExam/CreateExam';
 import Profile from '../pages/profile/Profile';
 import MemberList from '../pages/members/MemberList/MemberList';
+import EditExam from '../pages/exams/EditExam/EditExam';
 
 const router = createBrowserRouter([
   {
@@ -37,8 +38,9 @@ const router = createBrowserRouter([
       },
       { path: '/classes/:id/exams', element: <ExamList /> },
 
-      { path: '/classes/:id/exams/:exam_id', element: <ExamDetail /> },
-      { path: '/classes/:id/exams/:exam_id/create', element: <CreateExam /> },
+      { path: '/classes/:id/exams/:exam_group_id', element: <ExamDetail /> },
+      { path: '/classes/:id/exams/:exam_group_id/create', element: <CreateExam /> },
+      { path: '/classes/:id/exams/:exam_group_id/:exam_id', element: <EditExam /> },
       { path: '/classes/:id/members', element: <MemberList /> },
     ],
   },
