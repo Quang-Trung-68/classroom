@@ -6,6 +6,7 @@ import type {
   ExamResponseI,
   ExamDetailResponseI,
   ExamCreatePayloadI,
+  ExamDetailPayloadI
 } from "../types/exam.types";
 import { useLoadingStore } from "../stores/loadingStore";
 import { toast } from "react-toastify";
@@ -98,6 +99,20 @@ export const examService = {
       stopLoading();
     }
   },
+  putExamDetail: async (id: number, formData:ExamDetailPayloadI) :Promise<void>=>{
+     const { startLoading, stopLoading } = useLoadingStore.getState();
+    try {
+      startLoading();
+      const response = await api.put(`exam/${id}`,formData);
+      return response.data;
+    } catch (error) {
+      console.log(error);
+      throw new Error();
+    } finally {
+      stopLoading();
+    }
+  }
+  ,
   createExam: async (formData: ExamCreatePayloadI): Promise<void> => {
     const { startLoading, stopLoading } = useLoadingStore.getState();
     try {

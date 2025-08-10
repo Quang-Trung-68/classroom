@@ -1,5 +1,5 @@
 import React, { memo, useRef, useState } from "react";
-import { Box, Button, Grid, TextField } from "@mui/material";
+import { Box, Button, Grid, TextField, Breadcrumbs, Link, Typography } from "@mui/material";
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import AnsweringCard from "../../../components/cards/AnsweringCard/AnsweringCard";
 import { useExamState } from "../../../stores/examStore";
@@ -38,7 +38,6 @@ const CreateExam = () => {
         file: {
             id: null,
             payload: "",
-            type: "",
             url: ""
         }
     });
@@ -97,13 +96,12 @@ const CreateExam = () => {
             // Tạo blob URL
             const blobUrl = URL.createObjectURL(file);
 
-            // Cập nhật examData với thông tin file
+            // Cập nhật examData với thông tin file (bỏ thuộc tính type)
             setExamData(prev => ({
                 ...prev,
                 file: {
                     id: null,
                     payload: base64String,
-                    type: file.type, // "application/pdf"
                     url: blobUrl
                 }
             }));
@@ -133,7 +131,6 @@ const CreateExam = () => {
                 file: {
                     id: null,
                     payload: "",
-                    type: "",
                     url: ""
                 }
             }));
@@ -189,10 +186,9 @@ const CreateExam = () => {
     const handleCreateExam = async () => {
         console.log("Exam Data:", examData);
         try {
-            // Log thông tin file để debug
+            // Log thông tin file để debug (bỏ type vì không còn trong file object)
             if (examData.file.payload) {
                 console.log("File info:", {
-                    type: examData.file.type,
                     payloadLength: examData.file.payload.length,
                     url: examData.file.url
                 });
@@ -228,7 +224,6 @@ const CreateExam = () => {
             file: {
                 id: null,
                 payload: "",
-                type: "",
                 url: ""
             }
         }));
@@ -248,11 +243,24 @@ const CreateExam = () => {
 
 
         <>
-            <Grid container spacing={4} sx={{ alignItems: "center", justifyContent: "space-between" }}>
-                <Grid size={12}>
-                    Danh sách bài thi {">"} Đề thi lần 1 {">"} Thêm bài thi
-                </Grid>
+            {/* Breadcrumb */}
+            <Breadcrumbs sx={{ mb: 3 }}>
+                <Link
+                    underline="hover"
+                    color="inherit"
+                    sx={{ cursor: "pointer" }}
+                    onClick={() => navigate(-1)}
+                    fontSize={"1.6rem"}
+                    fontWeight={"bold"}
+                >
+                    Danh sách bài thi
+                </Link>
+                <Typography fontWeight={"bold"} color="primary" fontSize={"1.6rem"}>
+                    Thêm bài thi
+                </Typography>
+            </Breadcrumbs>
 
+            <Grid container spacing={4} sx={{ alignItems: "start", justifyContent: "space-between" }}>
                 <Grid size={6}>
                     <Box color={"#000"} sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
                         <Button
@@ -279,7 +287,7 @@ const CreateExam = () => {
                                 Đã chọn: <strong>{selectedFile.name}</strong>
                             </Box>
                             <Box sx={{ fontSize: '0.875rem', color: '#666', mt: 0.5 }}>
-                                Loại: {examData.file.type} |
+                                Loại: {selectedFile.type} |
                                 Kích thước: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                             </Box>
                             {examData.file.payload && (

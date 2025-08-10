@@ -7,6 +7,7 @@ import type {
   ExamResponseI,
   ExamDetailResponseI,
   ExamCreatePayloadI,
+  ExamDetailPayloadI
 } from "../types/exam.types";
 
 interface ExamState {
@@ -21,6 +22,7 @@ interface ExamState {
   getExam: (id: number) => Promise<void>;
   getExamDetailList: (id: number) => Promise<void>;
   getExamDetail: (id: number) => Promise<void>;
+  putExamDetail:(id:number, formData: ExamDetailPayloadI)=> Promise<void>;
   createExam: (formData: ExamCreatePayloadI) => Promise<void>;
   clearExamState: () => void;
 }
@@ -110,6 +112,14 @@ export const useExamState = create<ExamState>((set, get) => ({
       console.log(error);
     }
   },
+  putExamDetail: async (id: number, formData: ExamDetailPayloadI)=>{
+    try {
+      await examService.putExamDetail(id, formData);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  ,
   clearExamState: () => {
     set({
       examGroupSelecting: [],

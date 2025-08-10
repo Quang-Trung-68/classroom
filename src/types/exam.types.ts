@@ -91,16 +91,34 @@ export interface ExamDetailResponseI {
   description: null | string;
   exam_group: number;
   file: {
-    id: number;
+    id: number | null;
     key: string;
     url: string;
   };
-  id: number;
+  id?: number;
   name: string;
   number_of_question: number;
   questions: QuestionI[];
   total_time: number;
 }
+
+export interface ExamDetailPayloadI {
+  code: string;
+  correct_answer?: unknown;
+  description: null | string;
+  exam_group: number;
+  file: {
+    id: number | null;
+    payload: string;
+    url: string;
+  };
+  id?: number;
+  name: string;
+  number_of_question: number;
+  questions: QuestionI[];
+  total_time: number;
+}
+
 
 export interface ExamCreatePayloadI {
   code: string;
