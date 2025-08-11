@@ -34,21 +34,21 @@ const router = createBrowserRouter([
     element: <Layout />,
     children: [
       {
-        path: '/classes/:id', element: <ClassDetail />
+        path: '/class/:id', element: <ClassDetail />
       },
-      { path: '/classes/:id/exams', element: <ExamList /> },
+      { path: '/class/:id/exam', element: <ExamList /> },
 
-      { path: '/classes/:id/exams/:exam_group_id', element: <ExamDetail /> },
-      { path: '/classes/:id/exams/:exam_group_id/create', element: <CreateExam /> },
-      { path: '/classes/:id/exams/:exam_group_id/:exam_id', element: <EditExam /> },
-      { path: '/classes/:id/members', element: <MemberList /> },
+      { path: '/class/:id/exam/:exam_group_id', element: <ExamDetail /> },
+      { path: '/class/:id/exam/:exam_group_id/create', element: <CreateExam /> },
+      { path: '/class/:id/exam/:exam_group_id/:exam_id', element: <EditExam /> },
+      { path: '/class/:id/members', element: <MemberList /> },
     ],
   },
   {
     element: <MainLayout />,
     children: [
-      { path: '/classes', element: <ClassList /> },
-      { path: '/classes/create', element: <CreateClass /> },
+      { path: '/class', element: <ClassList /> },
+      { path: '/class/create', element: <CreateClass /> },
       { path: '/profile', element: <Profile /> },
     ],
   },

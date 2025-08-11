@@ -141,9 +141,7 @@ const Profile: React.FC = () => {
                 console.log(changePasswordField)
 
                 await changePassword(changePasswordField);
-                console.log("Password changed successfully");
-                // setChangePasswordForm({ oldPassword: "", newPassword: "", confirmPassword: "" });
-                navigate("/classes");
+                navigate("/class");
 
             } catch (error) {
                 console.error("Failed to change password:", error);
@@ -193,24 +191,16 @@ const Profile: React.FC = () => {
                 ...(changeUserForm.avata.payload && {
                     avatar: {
                         id: changeUserForm.avata.id,
-                        payload: changeUserForm.avata.payload, 
+                        payload: changeUserForm.avata.payload,
                         url: changeUserForm.avata.url
                     }
                 })
             };
 
-            console.log("Update user data:", updateUserData);
-            // await updateUserProfile(updateUserData);
             await changeUser(info.id, updateUserData)
-            console.log("User profile updated successfully");
-
-            // Có thể hiển thị thông báo thành công ở đây
-            // toast.success("Cập nhật thông tin thành công!");
-
+            navigate("/class");
         } catch (error) {
             console.error("Failed to update user profile:", error);
-            // Có thể hiển thị thông báo lỗi ở đây
-            // toast.error("Cập nhật thông tin thất bại!");
         }
     }
 
@@ -227,13 +217,13 @@ const Profile: React.FC = () => {
                 </Grid>
                 <Grid size={12} >
                     <Box sx={{ display: "flex", gap: "20px", justifyContent: "space-between", alignItems: "center", flexDirection: "column" }}>
-                        <Avatar 
-                            sx={{ width: 150, height: 150 }} 
+                        <Avatar
+                            sx={{ width: 150, height: 150 }}
                             src={changeUserForm.avata.url || undefined}
                         />
-                        <Button 
-                            startIcon={<CameraAltIcon />} 
-                            variant="outlined" 
+                        <Button
+                            startIcon={<CameraAltIcon />}
+                            variant="outlined"
                             sx={{ textTransform: "none" }}
                             component="label"
                         >

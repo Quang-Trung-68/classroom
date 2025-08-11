@@ -201,7 +201,7 @@ const CreateExam = () => {
             alert("Có lỗi xảy ra khi tạo đề bài!");
         }
         finally {
-            navigate(`/classes/${id}/exams/${exam_group_id}`)
+            navigate(`/class/${id}/exam/${exam_group_id}`)
         }
     };
 

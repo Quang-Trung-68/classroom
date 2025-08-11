@@ -3,7 +3,7 @@ import React from "react";
 import { Add, Logout, Person, PersonAdd, Settings } from "@mui/icons-material"
 import { Home } from '@mui/icons-material';
 import { useNavigate } from "react-router-dom";
-import {  useClassState } from "../../../stores/classStore";
+import { useClassState } from "../../../stores/classStore";
 import { useExamState } from "../../../stores/examStore";
 import logo from "@/assets/images/logo.png"
 import { useAuth, useAuthStore } from "../../../stores/authStore";
@@ -13,11 +13,11 @@ import Cookies from "js-cookie";
 function AccountMenu({ onProfile, onLogout }) {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
-  
+
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
-  
+
   const handleClose = () => {
     setAnchorEl(null);
   };
@@ -30,16 +30,16 @@ function AccountMenu({ onProfile, onLogout }) {
         aria-controls={open ? 'account-menu' : undefined}
         aria-haspopup="true"
         aria-expanded={open ? 'true' : undefined}
-        sx={{ 
+        sx={{
           p: 0.5,
           '&:hover': {
             backgroundColor: 'action.hover'
           }
         }}
       >
-        <Avatar 
-          sx={{ 
-            width: 36, 
+        <Avatar
+          sx={{
+            width: 36,
             height: 36,
             bgcolor: 'primary.main',
             fontSize: '1rem',
@@ -75,7 +75,7 @@ function AccountMenu({ onProfile, onLogout }) {
           }
         }}
       >
-        <MenuItem 
+        <MenuItem
           onClick={() => {
             handleClose();
             onProfile();
@@ -87,31 +87,31 @@ function AccountMenu({ onProfile, onLogout }) {
           </ListItemIcon>
           <Typography fontSize="1.4rem" variant="body2">Profile</Typography>
         </MenuItem>
-        
+
         <Divider sx={{ my: 0.5 }} />
-        
+
         <MenuItem onClick={handleClose} sx={{ py: 1.5 }}>
           <ListItemIcon>
-            <PersonAdd fontSize="large"/>
+            <PersonAdd fontSize="large" />
           </ListItemIcon>
           <Typography fontSize="1.4rem" variant="body2">Add account</Typography>
         </MenuItem>
-        
+
         <MenuItem onClick={handleClose} sx={{ py: 1.5 }}>
           <ListItemIcon>
             <Settings fontSize="large" />
           </ListItemIcon>
           <Typography fontSize="1.4rem" variant="body2">Settings</Typography>
         </MenuItem>
-        
+
         <Divider sx={{ my: 0.5 }} />
-        
-        <MenuItem 
+
+        <MenuItem
           onClick={() => {
             handleClose();
             onLogout();
           }}
-          sx={{ 
+          sx={{
             py: 1.5,
             color: 'error.main',
             '&:hover': {
@@ -131,12 +131,12 @@ function AccountMenu({ onProfile, onLogout }) {
 }
 const Header: React.FC = () => {
   const navigate = useNavigate();
-  const { classSelecting, clearClass,clearClassState } = useClassState()
-  const { clearExamGroup,clearExamState } = useExamState()
-  const {logout} = useAuthStore()
+  const { classSelecting, clearClass, clearClassState } = useClassState()
+  const { clearExamGroup, clearExamState } = useExamState()
+  const { logout } = useAuthStore()
   const { getAccessToken } = useAuth()
   const info = jwtDecode(getAccessToken())
-  
+
   const onProfile = () => {
     navigate("/profile")
   }
@@ -165,8 +165,8 @@ const Header: React.FC = () => {
           }
         </Box>
         <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px" }}>
-         {info.role === "teacher" && <Button sx={{ fontSize: "1.4rem" }} variant="outlined" startIcon={<Add />} onClick={() => navigate("/classes/create")} >Tạo lớp</Button>}
-          <Button sx={{ fontSize: "1.4rem" }} startIcon={<Home />} onClick={() => { clearClass(); clearExamGroup(); navigate("/classes") }} >Trang chủ</Button>
+          {info.role === "teacher" && <Button sx={{ fontSize: "1.4rem" }} variant="outlined" startIcon={<Add />} onClick={() => navigate("/class/create")} >Tạo lớp</Button>}
+          <Button sx={{ fontSize: "1.4rem" }} startIcon={<Home />} onClick={() => { clearClass(); clearExamGroup(); navigate("/class") }} >Trang chủ</Button>
           <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px" }}>
             <AccountMenu onProfile={onProfile} onLogout={onLogout} />
             <Box sx={{ display: "flex", flexDirection: "column", alignItems: "start", justifyContent: "center", gap: "4px" }}>

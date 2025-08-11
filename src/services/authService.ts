@@ -100,10 +100,10 @@ export const authService = {
     try {
       startLoading();
       const response = await api.put(`master/user/${id}`, formData);
-      toast.success("Đổi thong tin thành công!");
+      toast.success("Đổi thông tin thành công! Vui lòng đăng nhập lại để cập nhật thông tin.");
       return response.data;
     } catch (error) {
-      toast.error("Đổi thong tin thất bại!");
+      toast.error("Đổi thông tin thất bại!");
       console.log(error);
       throw error;
     } finally {

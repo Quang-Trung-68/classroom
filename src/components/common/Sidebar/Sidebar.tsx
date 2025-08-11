@@ -7,9 +7,9 @@ import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
 import { useClassState } from "../../../stores/classStore";
 
 export const Sidebar = () => {
-  const {classSelecting, getClass} = useClassState()
+  const { classSelecting, getClass } = useClassState()
   const location = useLocation(); // Lấy đường dẫn hiện tại
-  
+
   // Hàm kiểm tra active
   const isActive = (path) => {
     return location.pathname === path;
@@ -37,26 +37,26 @@ export const Sidebar = () => {
       <Box>
         <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", mb: "50px" }}>
           <img width={"20%"} src={logo} />
-          <Box component={"span"} sx={{fontWeight:"bold", fontSize:"2rem"}}>BK Classroom</Box>
+          <Box component={"span"} sx={{ fontWeight: "bold", fontSize: "2rem" }}>BK Classroom</Box>
         </Box>
         <Box sx={{ display: "flex", flexDirection: "column", alignItems: "stretch", gap: "10px" }}>
-          
+
           {/* Tổng quan */}
-          <Link to={`/classes/${classSelecting.id}`} style={{ textDecoration: 'none' }}>
-            <Button 
-              startIcon={<AppsIcon />} 
-              fullWidth 
+          <Link to={`/class/${classSelecting.id}`} style={{ textDecoration: 'none' }}>
+            <Button
+              startIcon={<AppsIcon />}
+              fullWidth
               sx={{
-                color: isActive(`/classes/${classSelecting.id}`) ? '#45b0e1' : "#000",
+                color: isActive(`/class/${classSelecting.id}`) ? '#45b0e1' : "#000",
                 fontWeight: "bold",
                 justifyContent: "flex-start",
-                fontSize: "1.6rem", 
-                textTransform: "none", 
+                fontSize: "1.6rem",
+                textTransform: "none",
                 textAlign: "left",
-                borderLeft: isActive(`/classes/${classSelecting.id}`) ? '4px solid #45b0e1' : '4px solid transparent',
+                borderLeft: isActive(`/class/${classSelecting.id}`) ? '4px solid #45b0e1' : '4px solid transparent',
                 borderRadius: 0,
                 paddingLeft: '16px',
-                backgroundColor: isActive(`/classes/${classSelecting.id}`) ? 'rgba(69, 176, 225, 0.1)' : 'transparent',
+                backgroundColor: isActive(`/class/${classSelecting.id}`) ? 'rgba(69, 176, 225, 0.1)' : 'transparent',
                 '&:hover': {
                   color: '#45b0e1',
                   backgroundColor: 'rgba(69, 176, 225, 0.05)',
@@ -68,20 +68,20 @@ export const Sidebar = () => {
           </Link>
 
           {/* Bài thi */}
-          <Link to={`/classes/${classSelecting.id}/exams`} style={{ textDecoration: 'none' }}>
-            <Button 
-              startIcon={<NoteAltIcon />} 
-              fullWidth 
+          <Link to={`/class/${classSelecting.id}/exam`} style={{ textDecoration: 'none' }}>
+            <Button
+              startIcon={<NoteAltIcon />}
+              fullWidth
               sx={{
-                color: isActive(`/classes/${classSelecting.id}/exams`) ? '#45b0e1' : "#000",
+                color: isActive(`/class/${classSelecting.id}/exam`) ? '#45b0e1' : "#000",
                 fontWeight: "bold",
                 justifyContent: "flex-start",
-                fontSize: "1.6rem", 
+                fontSize: "1.6rem",
                 textTransform: "none",
-                borderLeft: isActive(`/classes/${classSelecting.id}/exams`) ? '4px solid #45b0e1' : '4px solid transparent',
+                borderLeft: isActive(`/class/${classSelecting.id}/exam`) ? '4px solid #45b0e1' : '4px solid transparent',
                 borderRadius: 0,
                 paddingLeft: '16px',
-                backgroundColor: isActive(`/classes/${classSelecting.id}/exams`) ? 'rgba(69, 176, 225, 0.1)' : 'transparent',
+                backgroundColor: isActive(`/class/${classSelecting.id}/exam`) ? 'rgba(69, 176, 225, 0.1)' : 'transparent',
                 '&:hover': {
                   color: '#45b0e1',
                   backgroundColor: 'rgba(69, 176, 225, 0.05)',
@@ -93,20 +93,20 @@ export const Sidebar = () => {
           </Link>
 
           {/* Thành viên */}
-          <Link to={`/classes/${classSelecting.id}/members`} style={{ textDecoration: 'none' }}>
-            <Button 
-              startIcon={<PeopleAltIcon />} 
-              fullWidth 
+          <Link to={`/class/${classSelecting.id}/members`} style={{ textDecoration: 'none' }}>
+            <Button
+              startIcon={<PeopleAltIcon />}
+              fullWidth
               sx={{
-                color: isActive(`/classes/${classSelecting.id}/members`) ? '#45b0e1' : "#000",
+                color: isActive(`/class/${classSelecting.id}/members`) ? '#45b0e1' : "#000",
                 fontWeight: "bold",
                 justifyContent: "flex-start",
-                fontSize: "1.6rem", 
+                fontSize: "1.6rem",
                 textTransform: "none",
-                borderLeft: isActive(`/classes/${classSelecting.id}/members`) ? '4px solid #45b0e1' : '4px solid transparent',
+                borderLeft: isActive(`/class/${classSelecting.id}/members`) ? '4px solid #45b0e1' : '4px solid transparent',
                 borderRadius: 0,
                 paddingLeft: '16px',
-                backgroundColor: isActive(`/classes/${classSelecting.id}/members`) ? 'rgba(69, 176, 225, 0.1)' : 'transparent',
+                backgroundColor: isActive(`/class/${classSelecting.id}/members`) ? 'rgba(69, 176, 225, 0.1)' : 'transparent',
                 '&:hover': {
                   color: '#45b0e1',
                   backgroundColor: 'rgba(69, 176, 225, 0.05)',
@@ -119,7 +119,7 @@ export const Sidebar = () => {
 
         </Box>
       </Box>
-      <Box sx={{display: "flex", flexDirection: "column", alignItems: "center", gap: "5px", color: "#666", fontSize:"1.4rem"}}>
+      <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "5px", color: "#666", fontSize: "1.4rem" }}>
         <Box>@2025 Allrights reserved</Box>
         <Box>BK Star</Box>
         <Box>Version: 1.0.0</Box>

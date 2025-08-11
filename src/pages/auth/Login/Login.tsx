@@ -73,7 +73,7 @@ const Login: React.FC = () => {
             setFormErrors({});
             try {
                 await login(formData);
-                navigate("/classes")
+                navigate("/class")
 
             } catch (error) {
                 console.log(error);

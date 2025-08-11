@@ -78,8 +78,8 @@ const EditExam = () => {
                 questions: formattedQuestions,
                 file: {
                     id: examDetail.file?.id || null,
-                    url: examDetail.file?.url || "", // Giữ nguyên URL từ server
-                    payload: "" // Payload trống khi load từ server
+                    url: examDetail.file?.url || "",
+                    payload: ""
                 }
             });
 
@@ -97,6 +97,22 @@ const EditExam = () => {
         }
     }, [examDetail?.id, examSelecting.id, examDetail]);
 
+    // Update previewUrl when file changes
+    useEffect(() => {
+        console.log("useEffect triggered - examData.file:", examData.file);
+        console.log("selectedFile:", selectedFile);
+        updatePreviewUrl();
+    }, [examData.file, selectedFile]);
+
+    // Cleanup function cho blob URLs
+    useEffect(() => {
+        return () => {
+            if (previewUrl && previewUrl.startsWith('blob:')) {
+                URL.revokeObjectURL(previewUrl);
+            }
+        };
+    }, [previewUrl]);
+
     // Helper function để lấy file type từ tên file
     const getFileTypeFromName = (fileName) => {
         const extension = fileName.split('.').pop()?.toLowerCase();
@@ -112,6 +128,88 @@ const EditExam = () => {
             default:
                 return 'unknown';
         }
+    };
+
+    // Helper để lấy file type cho preview
+    const getFileTypeForPreview = () => {
+        if (selectedFile?.isFromServer && examData.file.url) {
+            return getFileTypeFromName(examData.file.url);
+        }
+        return selectedFile?.type || "";
+    };
+
+    // Check xem có thể preview file không
+    const canPreviewFile = () => {
+        const type = getFileTypeForPreview();
+
+        if (examData.file.url && !examData.file.payload) {
+            // File từ server - có thể preview tất cả
+            return true;
+        } else if (examData.file.payload) {
+            // File mới upload - có thể preview PDF và TXT
+            return type === "application/pdf" || type === "text/plain";
+        }
+
+        return false;
+    };
+
+    // Function để cập nhật preview URL
+    const updatePreviewUrl = () => {
+        console.log("updatePreviewUrl called");
+        console.log("selectedFile:", selectedFile);
+        console.log("examData.file:", examData.file);
+
+        if (!selectedFile) {
+            console.log("No selected file, clearing preview");
+            setPreviewUrl("");
+            return;
+        }
+
+        let urlToPreview = "";
+        const type = getFileTypeForPreview();
+        console.log("File type for preview:", type);
+
+        if (examData.file.payload) {
+            console.log("Processing file with payload, length:", examData.file.payload.length);
+            // File mới upload (base64)
+            if (type === "application/pdf") {
+                // Đối với PDF, sử dụng trực tiếp base64 data URL
+                console.log("Setting PDF preview from base64");
+                urlToPreview = examData.file.payload;
+            } else if (type === "text/plain") {
+                // Đối với text file, tạo blob URL
+                try {
+                    console.log("Creating text preview from base64");
+                    const base64Data = examData.file.payload.split(',')[1];
+                    const binaryString = atob(base64Data);
+                    const bytes = new Uint8Array(binaryString.length);
+                    for (let i = 0; i < binaryString.length; i++) {
+                        bytes[i] = binaryString.charCodeAt(i);
+                    }
+                    const blob = new Blob([bytes], { type: 'text/plain' });
+                    urlToPreview = URL.createObjectURL(blob);
+                    console.log("Text blob URL created:", urlToPreview);
+                } catch (error) {
+                    console.error("Error creating text preview:", error);
+                    urlToPreview = "";
+                }
+            } else if (type.includes("word") || type.includes("document")) {
+                // Đối với Word files, không thể preview trực tiếp từ base64
+                console.log("Word file detected, no preview available");
+                urlToPreview = "";
+            }
+        } else if (examData.file.url) {
+            console.log("Processing file with URL:", examData.file.url);
+            // File từ server
+            if (type === "application/pdf" || type === "text/plain") {
+                urlToPreview = examData.file.url;
+            } else {
+                urlToPreview = `https://docs.google.com/viewer?url=${encodeURIComponent(examData.file.url)}&embedded=true`;
+            }
+        }
+
+        console.log("Final preview URL:", urlToPreview);
+        setPreviewUrl(urlToPreview);
     };
 
     console.log("Current examData:", examData);
@@ -171,9 +269,9 @@ const EditExam = () => {
             setExamData(prev => ({
                 ...prev,
                 file: {
-                    id: null, // Reset id khi upload file mới
-                    url: prev.file.url, // Giữ nguyên URL cũ
-                    payload: base64String // Set payload là base64 của file mới
+                    id: null,
+                    url: "",
+                    payload: base64String
                 }
             }));
 
@@ -254,7 +352,7 @@ const EditExam = () => {
     const handleUpdateExam = async () => {
         console.log("Updating Exam Data:", examData);
 
-        // Chuẩn bị data để gửi lên server (chỉ gửi id, url, payload)
+        // Chuẩn bị data để gửi lên server
         const dataToSend = {
             ...examData,
             file: {
@@ -270,12 +368,18 @@ const EditExam = () => {
             console.error("Error updating exam:", error);
             alert("Có lỗi xảy ra khi cập nhật đề bài!");
         } finally {
-            navigate(`/classes/${id}/exams/${exam_group_id}`);
+            navigate(`/class/${id}/exam/${exam_group_id}`);
         }
     };
 
     const handleRemoveFile = () => {
+        // Cleanup blob URL nếu có
+        if (previewUrl && previewUrl.startsWith('blob:')) {
+            URL.revokeObjectURL(previewUrl);
+        }
+
         setSelectedFile(null);
+        setPreviewUrl("");
 
         // Reset file input
         if (fileInputRef.current) {
@@ -293,46 +397,13 @@ const EditExam = () => {
         }));
     };
 
-    // Hàm mở preview file
-   const handlePreviewFile = () => {
-    let urlToPreview = "";
-    let type = selectedFile?.type || "";
-
-    if (examData.file.payload) {
-        // File mới upload (base64)
-        if (type === "application/pdf" || type === "text/plain") {
-            urlToPreview = examData.file.payload; // PDF/TXT: xài trực tiếp
-        } else {
-            // DOC/DOCX base64 → Blob → object URL
-            const byteString = atob(examData.file.payload.split(',')[1]);
-            const ab = new ArrayBuffer(byteString.length);
-            const ia = new Uint8Array(ab);
-            for (let i = 0; i < byteString.length; i++) {
-                ia[i] = byteString.charCodeAt(i);
-            }
-            const blob = new Blob([ab], { type });
-            urlToPreview = `https://docs.google.com/viewer?url=${encodeURIComponent(URL.createObjectURL(blob))}&embedded=true`;
-        }
-    } else if (examData.file.url) {
-        // File từ server
-        if (type === "application/pdf" || type === "text/plain") {
-            urlToPreview = examData.file.url; // PDF/TXT trực tiếp
-        } else {
-            // DOC/DOCX từ server → Google Docs Viewer
-            urlToPreview = `https://docs.google.com/viewer?url=${encodeURIComponent(examData.file.url)}&embedded=true`;
-        }
-    }
-
-    if (urlToPreview) {
-        setPreviewUrl(urlToPreview);
+    // Hàm mở preview file trong dialog
+    const handleOpenPreviewDialog = () => {
         setPreviewOpen(true);
-    }
-};
-
+    };
 
     const handleClosePreview = () => {
         setPreviewOpen(false);
-        setPreviewUrl("");
     };
 
     // Hàm download file
@@ -342,11 +413,30 @@ const EditExam = () => {
             const link = document.createElement('a');
             link.href = examData.file.payload;
             link.download = selectedFile?.name || 'file';
+            document.body.appendChild(link);
             link.click();
+            document.body.removeChild(link);
         } else if (examData.file.url) {
             // File từ server - mở URL để download
             window.open(examData.file.url, '_blank');
         }
+    };
+
+    // Helper để hiển thị thông tin preview availability
+    const getPreviewInfo = () => {
+        const type = getFileTypeForPreview();
+
+        if (examData.file.url && !examData.file.payload) {
+            return { canPreview: true, message: "Có thể xem trước" };
+        } else if (examData.file.payload) {
+            if (type === "application/pdf" || type === "text/plain") {
+                return { canPreview: true, message: "Có thể xem trước" };
+            } else {
+                return { canPreview: false, message: "Chỉ có thể xem sau khi lưu" };
+            }
+        }
+
+        return { canPreview: false, message: "" };
     };
 
     return (
@@ -369,84 +459,207 @@ const EditExam = () => {
             </Breadcrumbs>
 
             <Grid container spacing={4} sx={{ alignItems: "start", justifyContent: "space-between" }}>
+                {/* Phần Preview bên trái */}
                 <Grid size={6}>
-                    <Box color={"#000"} sx={{ display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 2 }}>
-                        <Button
-                            onClick={handleUploadClick}
-                            startIcon={<FileUploadIcon />}
-                            color="inherit"
-                            sx={{ textTransform: "none" }}
-                        >
-                            Tải lên từ máy
-                        </Button>
+                    <Box sx={{
+                        height: '70vh',
+                        border: '1px solid #ddd',
+                        borderRadius: '8px',
+                        display: 'flex',
+                        flexDirection: 'column'
+                    }}>
+                        {/* Header với nút upload và thông tin file */}
+                        <Box sx={{
+                            p: 2,
+                            borderBottom: '1px solid #ddd',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 2
+                        }}>
+                            <Button
+                                onClick={handleUploadClick}
+                                startIcon={<FileUploadIcon />}
+                                variant="outlined"
+                                sx={{ textTransform: "none", alignSelf: 'center' }}
+                            >
+                                Tải lên file đề bài
+                            </Button>
 
-                        <input
-                            type="file"
-                            hidden
-                            ref={fileInputRef}
-                            onChange={handleFileChange}
-                            accept=".pdf,.doc,.docx,.txt"
-                        />
-                    </Box>
+                            <input
+                                type="file"
+                                hidden
+                                ref={fileInputRef}
+                                onChange={handleFileChange}
+                                accept=".pdf,.doc,.docx,.txt"
+                            />
 
-                    {selectedFile && (
-                        <Box mt={1} textAlign="center">
-                            <Box>
-                                Đã chọn: <strong>{selectedFile.name}</strong>
-                                {selectedFile.isFromServer && (
-                                    <Typography variant="caption" color="info.main" display="block">
-                                        (File hiện tại từ server)
-                                    </Typography>
-                                )}
-                            </Box>
-                            <Box sx={{ fontSize: '0.875rem', color: '#666', mt: 0.5 }}>
-                                Loại: {selectedFile.type}
-                                {selectedFile.size > 0 && (
-                                    <>| Kích thước: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB</>
-                                )}
-                            </Box>
+                            {selectedFile && (
+                                <Box>
+                                    <Box sx={{ fontSize: '0.9rem', fontWeight: 'bold' }}>
+                                        {selectedFile.name}
+                                        {selectedFile.isFromServer && (
+                                            <Typography variant="caption" color="info.main" display="block">
+                                                (File hiện tại từ server)
+                                            </Typography>
+                                        )}
+                                    </Box>
+                                    <Box sx={{ fontSize: '0.8rem', color: '#666', mt: 0.5 }}>
+                                        Loại: {selectedFile.type}
+                                        {selectedFile.size > 0 && (
+                                            <>| Kích thước: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB</>
+                                        )}
+                                    </Box>
 
-                            {examData.file.payload && (
-                                <Box sx={{ fontSize: '0.75rem', color: '#888', mt: 0.5 }}>
-                                    Base64 length: {examData.file.payload.length} chars
+                                    {/* Action buttons */}
+                                    <Box sx={{ display: 'flex', gap: 1, mt: 1, flexWrap: 'wrap' }}>
+                                        {canPreviewFile() && (
+                                            <Button
+                                                size="small"
+                                                variant="outlined"
+                                                color="primary"
+                                                onClick={handleOpenPreviewDialog}
+                                                startIcon={<VisibilityIcon />}
+                                                sx={{ textTransform: "none" }}
+                                            >
+                                                Toàn màn hình
+                                            </Button>
+                                        )}
+                                        {(examData.file.payload || examData.file.url) && (
+                                            <Button
+                                                size="small"
+                                                variant="outlined"
+                                                color="secondary"
+                                                onClick={handleDownloadFile}
+                                                sx={{ textTransform: "none" }}
+                                            >
+                                                Tải xuống
+                                            </Button>
+                                        )}
+                                        <Button
+                                            size="small"
+                                            variant="outlined"
+                                            color="error"
+                                            onClick={handleRemoveFile}
+                                            sx={{ textTransform: "none" }}
+                                        >
+                                            Xóa file
+                                        </Button>
+                                    </Box>
                                 </Box>
                             )}
-
-                            <Box mt={1} sx={{ display: 'flex', justifyContent: 'center', gap: 1, flexWrap: 'wrap' }}>
-                                {(examData.file.payload || examData.file.url) && (
-                                    <Button
-                                        size="small"
-                                        color="primary"
-                                        onClick={handlePreviewFile}
-                                        startIcon={<VisibilityIcon />}
-                                        sx={{ textTransform: "none" }}
-                                    >
-                                        Xem trước
-                                    </Button>
-                                )}
-                                {(examData.file.payload || examData.file.url) && (
-                                    <Button
-                                        size="small"
-                                        color="secondary"
-                                        onClick={handleDownloadFile}
-                                        sx={{ textTransform: "none" }}
-                                    >
-                                        Tải xuống
-                                    </Button>
-                                )}
-                                <Button
-                                    size="small"
-                                    color="error"
-                                    onClick={handleRemoveFile}
-                                    sx={{ textTransform: "none" }}
-                                >
-                                    Xóa file
-                                </Button>
-                            </Box>
                         </Box>
-                    )}
+
+                        {/* Phần preview */}
+                        <Box sx={{
+                            flex: 1,
+                            p: 1,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                        }}>
+                            {(() => {
+                                console.log("Rendering preview area, previewUrl:", previewUrl);
+                                console.log("selectedFile:", selectedFile);
+                                console.log("canPreviewFile():", canPreviewFile());
+
+                                if (previewUrl) {
+                                    console.log("Rendering iframe with URL:", previewUrl.substring(0, 100) + "...");
+
+                                    // Kiểm tra xem có phải PDF không để có thể dùng object tag backup
+                                    const isPDF = previewUrl.startsWith('data:application/pdf');
+
+                                    return (
+                                        <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+                                            {isPDF ? (
+                                                // Sử dụng object tag cho PDF vì một số browser hỗ trợ tốt hơn
+                                                <object
+                                                    data={previewUrl}
+                                                    type="application/pdf"
+                                                    width="100%"
+                                                    height="100%"
+                                                    style={{ borderRadius: '4px' }}
+                                                >
+                                                    {/* Fallback iframe nếu object không hoạt động */}
+                                                    <iframe
+                                                        src={previewUrl}
+                                                        width="100%"
+                                                        height="100%"
+                                                        style={{ border: 'none', borderRadius: '4px' }}
+                                                        title="File Preview"
+                                                        onLoad={() => console.log("Iframe loaded successfully")}
+                                                        onError={(e) => {
+                                                            console.error("Error loading preview iframe:", e);
+                                                        }}
+                                                    />
+                                                </object>
+                                            ) : (
+                                                // Dùng iframe cho các file khác
+                                                <iframe
+                                                    src={previewUrl}
+                                                    width="100%"
+                                                    height="100%"
+                                                    style={{ border: 'none', borderRadius: '4px' }}
+                                                    title="File Preview"
+                                                    onLoad={() => console.log("Iframe loaded successfully")}
+                                                    onError={(e) => {
+                                                        console.error("Error loading preview iframe:", e);
+                                                    }}
+                                                />
+                                            )}
+                                        </div>
+                                    );
+                                } else if (selectedFile) {
+                                    console.log("No preview URL but has selectedFile");
+                                    return (
+                                        <Box sx={{
+                                            textAlign: 'center',
+                                            color: '#666',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                            gap: 2
+                                        }}>
+                                            <FileUploadIcon sx={{ fontSize: 60, opacity: 0.5 }} />
+                                            <Typography>
+                                                {!canPreviewFile()
+                                                    ? "File này không thể xem trước trực tiếp"
+                                                    : "Đang tải preview..."
+                                                }
+                                            </Typography>
+                                            {!canPreviewFile() && (
+                                                <Typography variant="body2" color="text.secondary">
+                                                    Bạn có thể tải xuống để xem nội dung file
+                                                </Typography>
+                                            )}
+                                        </Box>
+                                    );
+                                } else {
+                                    console.log("No file selected");
+                                    return (
+                                        <Box sx={{
+                                            textAlign: 'center',
+                                            color: '#999',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                            gap: 2
+                                        }}>
+                                            <FileUploadIcon sx={{ fontSize: 80, opacity: 0.3 }} />
+                                            <Typography variant="h6">
+                                                Chưa có file đề bài
+                                            </Typography>
+                                            <Typography variant="body2">
+                                                Vui lòng tải lên file để xem trước
+                                            </Typography>
+                                        </Box>
+                                    );
+                                }
+                            })()}
+                        </Box>
+                    </Box>
                 </Grid>
 
+                {/* Phần form bên phải */}
                 <Grid size={6} container>
                     <Grid size={6} container sx={{ gap: "10px", flexDirection: "column" }}>
                         <Box>Tên đề *</Box>
@@ -536,7 +749,7 @@ const EditExam = () => {
                 </Grid>
             </Grid>
 
-            {/* File Preview Dialog */}
+            {/* File Preview Dialog cho xem toàn màn hình */}
             <Dialog
                 open={previewOpen}
                 onClose={handleClosePreview}
@@ -545,7 +758,7 @@ const EditExam = () => {
                 sx={{ '& .MuiDialog-paper': { height: '90vh' } }}
             >
                 <DialogTitle>
-                    Xem trước file
+                    Xem trước file: {selectedFile?.name}
                     <IconButton
                         aria-label="close"
                         onClick={handleClosePreview}
@@ -557,13 +770,16 @@ const EditExam = () => {
                 <DialogContent sx={{ p: 0 }}>
                     {previewUrl && (
                         <iframe
-    src={previewUrl}
-    width="100%"
-    height="100%"
-    style={{ border: 'none', minHeight: '600px' }}
-    title="File Preview"
-/>
-
+                            src={previewUrl}
+                            width="100%"
+                            height="100%"
+                            style={{ border: 'none', minHeight: '600px' }}
+                            title="File Preview Fullscreen"
+                            onError={() => {
+                                console.error("Error loading preview");
+                                alert("Không thể tải preview. Vui lòng thử lại.");
+                            }}
+                        />
                     )}
                 </DialogContent>
             </Dialog>

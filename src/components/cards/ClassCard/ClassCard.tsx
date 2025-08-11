@@ -45,9 +45,9 @@ const ClassCard: React.FC<ClassCardProps> = ({ classElement }) => {
                 }}>
                     {classElement.name}
                 </Box>
-                
+
                 <Button
-                    onClick={() => navigate(`/classes/${classElement.id}`)}
+                    onClick={() => navigate(`/class/${classElement.id}`)}
                     variant="contained"
                     size="small"
                     startIcon={<GoClass />}
@@ -100,7 +100,7 @@ const ClassCard: React.FC<ClassCardProps> = ({ classElement }) => {
                 alignItems: 'center',
                 justifyContent: 'space-between'
             }}>
-                <Chip 
+                <Chip
                     label={`Mã: ${classElement.id}`}
                     size="medium"
                     sx={{
@@ -109,10 +109,10 @@ const ClassCard: React.FC<ClassCardProps> = ({ classElement }) => {
                         fontWeight: 600,
                         backdropFilter: 'blur(10px)',
                         border: '1px solid rgba(255,255,255,0.3)',
-                        fontSize:"1.2rem"
+                        fontSize: "1.2rem"
                     }}
                 />
-                
+
                 <Button
                     variant="text"
                     size="small"

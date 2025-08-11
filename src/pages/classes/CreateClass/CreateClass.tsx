@@ -18,7 +18,7 @@ const CreateClass: React.FC = () => {
     });
 
     const { createClass } = useClassState()
-    
+
     const { getAccessToken } = useAuth()
     const info = jwtDecode(getAccessToken())
 
@@ -31,12 +31,12 @@ const CreateClass: React.FC = () => {
             ]
         }
         createClass(dataSend)
-        navigate("/classes")
+        navigate("/class")
     }
 
     return (
         <>
-            <Box sx={{ fontSize: "2.4rem", fontWeight: "bold", mb: "50px", mt:"50px" }} >Thêm lớp học mới</Box>
+            <Box sx={{ fontSize: "2.4rem", fontWeight: "bold", mb: "50px", mt: "50px" }} >Thêm lớp học mới</Box>
             <Grid container>
                 <Grid size={4}>
 
@@ -44,7 +44,7 @@ const CreateClass: React.FC = () => {
                 <Grid size={4}>
                     <CreateClassForm formData={formData} setFormData={setFormData} />
                     <Box mt={"40px"} sx={{ display: "flex", justifyContent: "space-evenly" }}>
-                        <Button sx={{ fontSize: "1.4rem", width: "140px" }} variant="outlined" color="error" onClick={() => navigate("/classes")} >HỦY</Button>
+                        <Button sx={{ fontSize: "1.4rem", width: "140px" }} variant="outlined" color="error" onClick={() => navigate("/class")} >HỦY</Button>
                         <Button sx={{ fontSize: "1.4rem", width: "140px" }} variant="contained" onClick={onCreate} >TẠO MỚI</Button>
                     </Box>
 

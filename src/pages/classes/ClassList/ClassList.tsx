@@ -13,10 +13,10 @@ const ClassList: React.FC = () => {
     const { getAccessToken } = useAuth()
     const info = jwtDecode(getAccessToken())
     const navigate = useNavigate()
-    
+
     // State cho search
     const [searchTerm, setSearchTerm] = useState<string>("");
-    
+
     // Debounce search term với delay 400ms
     const debouncedSearchTerm = useDebounce(searchTerm, 400);
 
@@ -27,15 +27,14 @@ const ClassList: React.FC = () => {
 
     // Lọc classes dựa trên search term
     const filteredClasses = useMemo(() => {
+        console.log(classes)
         if (!debouncedSearchTerm.trim()) {
             return classes;
         }
-        
+
         const searchLower = debouncedSearchTerm.toLowerCase().trim();
-        return classes.filter((classElement) => 
+        return classes.filter((classElement) =>
             classElement.name?.toLowerCase().includes(searchLower) ||
-            classElement.subject?.toLowerCase().includes(searchLower) ||
-            classElement.description?.toLowerCase().includes(searchLower) ||
             classElement.code?.toLowerCase().includes(searchLower)
         );
     }, [classes, debouncedSearchTerm]);
@@ -120,7 +119,7 @@ const ClassList: React.FC = () => {
                                 backgroundColor: '#1565c0'
                             }
                         }}
-                        onClick={()=> navigate("/classes/create")}
+                        onClick={() => navigate("/class/create")}
                     >
                         Thêm lớp học
                     </Button>}
@@ -131,7 +130,7 @@ const ClassList: React.FC = () => {
             {debouncedSearchTerm && (
                 <Box sx={{ mb: 2 }}>
                     <Typography fontSize={"1.5rem"} variant="body2" color="text.secondary">
-                        {filteredClasses.length > 0 
+                        {filteredClasses.length > 0
                             ? `Tìm thấy ${filteredClasses.length} lớp học cho "${debouncedSearchTerm}"`
                             : `Không tìm thấy kết quả cho "${debouncedSearchTerm}"`
                         }
@@ -149,14 +148,14 @@ const ClassList: React.FC = () => {
                     ))
                 ) : (
                     <Grid size={12}>
-                        <Box sx={{ 
-                            textAlign: 'center', 
+                        <Box sx={{
+                            textAlign: 'center',
                             py: 8,
                             color: '#666'
                         }}>
                             <Typography variant="h6" fontSize={"1.4rem"} sx={{ mb: 1 }}>
-                                {debouncedSearchTerm 
-                                    ? "Không tìm thấy lớp học nào" 
+                                {debouncedSearchTerm
+                                    ? "Không tìm thấy lớp học nào"
                                     : "Bạn chưa có lớp học nào."
                                 }
                             </Typography>
