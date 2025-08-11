@@ -21,13 +21,7 @@ const ClassCard: React.FC<ClassCardProps> = ({ classElement }) => {
             height: '200px',
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: 'space-between',
-            transition: 'all 0.3s ease',
-            cursor: 'pointer',
-            '&:hover': {
-                transform: 'translateY(-4px)',
-                boxShadow: '0 8px 25px rgba(0,0,0,0.15)'
-            }
+            justifyContent: 'space-between'
         }}>
             {/* Header */}
             <Box sx={{
@@ -38,7 +32,7 @@ const ClassCard: React.FC<ClassCardProps> = ({ classElement }) => {
             }}>
                 <Box sx={{
                     fontWeight: 700,
-                    fontSize: '1.8rem',
+                    fontSize: '2.4rem',
                     lineHeight: 1.2,
                     flex: 1,
                     mr: 2
@@ -55,7 +49,7 @@ const ClassCard: React.FC<ClassCardProps> = ({ classElement }) => {
                         backgroundColor: 'rgba(255,255,255,0.2)',
                         color: 'white',
                         fontWeight: 600,
-                        fontSize: '1.1rem',
+                        fontSize: '1.4rem',
                         borderRadius: 2,
                         backdropFilter: 'blur(10px)',
                         border: '1px solid rgba(255,255,255,0.3)',
@@ -76,17 +70,17 @@ const ClassCard: React.FC<ClassCardProps> = ({ classElement }) => {
                 gap: 1,
                 mb: 2
             }}>
-                <PeopleIcon sx={{ fontSize: '2rem' }} />
+                <PeopleIcon sx={{ fontSize: '3rem' }} />
                 <Box>
                     <Box sx={{
-                        fontSize: '2.6rem',
+                        fontSize: '3rem',
                         fontWeight: 700,
                         lineHeight: 1
                     }}>
                         {classElement.users.length}
                     </Box>
                     <Box sx={{
-                        fontSize: '1.3rem',
+                        fontSize: '1.6rem',
                         opacity: 0.9
                     }}>
                         Thành viên
@@ -101,7 +95,7 @@ const ClassCard: React.FC<ClassCardProps> = ({ classElement }) => {
                 justifyContent: 'space-between'
             }}>
                 <Chip
-                    label={`Mã: ${classElement.id}`}
+                    label={`Mã lớp học: ${classElement.code}`}
                     size="medium"
                     sx={{
                         backgroundColor: 'rgba(255,255,255,0.2)',
@@ -109,7 +103,7 @@ const ClassCard: React.FC<ClassCardProps> = ({ classElement }) => {
                         fontWeight: 600,
                         backdropFilter: 'blur(10px)',
                         border: '1px solid rgba(255,255,255,0.3)',
-                        fontSize: "1.2rem"
+                        fontSize: "1.4rem"
                     }}
                 />
 
@@ -120,7 +114,7 @@ const ClassCard: React.FC<ClassCardProps> = ({ classElement }) => {
                     sx={{
                         color: 'white',
                         fontWeight: 600,
-                        fontSize: '1.2rem',
+                        fontSize: '1.4rem',
                         textTransform: 'none',
                         minWidth: 'auto',
                         '&:hover': {

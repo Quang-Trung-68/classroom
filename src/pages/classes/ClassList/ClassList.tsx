@@ -108,7 +108,7 @@ const ClassList: React.FC = () => {
                         variant="contained"
                         startIcon={<Add />}
                         sx={{
-                            fontSize: "1.1rem",
+                            fontSize: "1.4rem",
                             fontWeight: 600,
                             px: 3,
                             py: 1.2,

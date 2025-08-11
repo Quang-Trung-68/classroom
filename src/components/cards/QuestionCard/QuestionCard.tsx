@@ -14,26 +14,27 @@ interface QuestionCardProps {
 
 const QuestionCard: React.FC<QuestionCardProps> = ({ exam }) => {
     const navigate = useNavigate();
-    const onEdit = ()=>{
+    const onEdit = () => {
         navigate(`${exam.id}`);
     }
     return (
         <Box sx={{
-            display: "flex", 
-            gap: "20px", 
-            minHeight: "100%", 
-            alignItems: "start", 
-            padding: "20px 20px", 
-            border: "2px dotted #45b0e1", 
-            borderRadius: "10px", 
-            flexDirection: "column"
+            display: "flex",
+            gap: "20px",
+            minHeight: "100%",
+            alignItems: "start",
+            padding: "20px 20px",
+            border: "2px dotted #45b0e1",
+            borderRadius: "10px",
+            flexDirection: "column",
+            justifyContent: "space-between"
         }}>
             <Box sx={{ display: "flex", alignSelf: "stretch", alignItems: "start", justifyContent: "space-between" }}>
                 <Box>ĐỀ BÀI: {exam.name}</Box>
                 <Box>
                     <Button
-                    onClick={onEdit}
-                    startIcon={<EditingPen />} variant="small" sx={{ fontSize: "1.2rem" }}>
+                        onClick={onEdit}
+                        startIcon={<EditingPen />} variant="outlined" sx={{ fontSize: "1.4rem" }}>
                         Edit
                     </Button>
                 </Box>
