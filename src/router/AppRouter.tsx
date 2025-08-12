@@ -4,6 +4,7 @@ import {
   RouterProvider,
   Navigate,
 } from 'react-router-dom';
+import { ROUTES } from './routes';
 import Layout from '../components/common/Layout/Layout';
 import MainLayout from '../components/common/Layout/MainLayout';
 import AuthLayout from '../components/common/Layout/AuthLayout';
@@ -24,32 +25,29 @@ const router = createBrowserRouter([
   {
     element: <AuthLayout />,
     children: [
-      { path: '/login', element: <Login /> },
-      { path: '/register', element: <Register /> },
-      { path: '/', element: <Navigate to="/landing" /> },
-      { path: '/landing', element: <LandingPage /> },
+      { path: ROUTES.LOGIN, element: <Login /> },
+      { path: ROUTES.REGISTER, element: <Register /> },
+      { path: ROUTES.ROOT, element: <Navigate to={ROUTES.LANDING} /> },
+      { path: ROUTES.LANDING, element: <LandingPage /> },
     ],
   },
   {
     element: <Layout />,
     children: [
-      {
-        path: '/class/:id', element: <ClassDetail />
-      },
-      { path: '/class/:id/exam', element: <ExamList /> },
-
-      { path: '/class/:id/exam/:exam_group_id', element: <ExamDetail /> },
-      { path: '/class/:id/exam/:exam_group_id/create', element: <CreateExam /> },
-      { path: '/class/:id/exam/:exam_group_id/:exam_id', element: <EditExam /> },
-      { path: '/class/:id/members', element: <MemberList /> },
+      { path: ROUTES.CLASS_DETAIL, element: <ClassDetail /> },
+      { path: ROUTES.CLASS_EXAMS, element: <ExamList /> },
+      { path: ROUTES.EXAM_DETAIL, element: <ExamDetail /> },
+      { path: ROUTES.CREATE_EXAM, element: <CreateExam /> },
+      { path: ROUTES.EDIT_EXAM, element: <EditExam /> },
+      { path: ROUTES.CLASS_MEMBERS, element: <MemberList /> },
     ],
   },
   {
     element: <MainLayout />,
     children: [
-      { path: '/class', element: <ClassList /> },
-      { path: '/class/create', element: <CreateClass /> },
-      { path: '/profile', element: <Profile /> },
+      { path: ROUTES.CLASSES, element: <ClassList /> },
+      { path: ROUTES.CREATE_CLASS, element: <CreateClass /> },
+      { path: ROUTES.PROFILE, element: <Profile /> },
     ],
   },
 ]);

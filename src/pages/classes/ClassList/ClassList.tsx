@@ -7,6 +7,7 @@ import { useClassState } from "../../../stores/classStore";
 import { useEffect, useState, useMemo } from "react";
 import { jwtDecode } from "jwt-decode";
 import { useAuth } from "../../../stores/authStore";
+import { ROUTES } from "../../../router/routes";
 
 const ClassList: React.FC = () => {
     const { classes, getClasses, clearClass } = useClassState();
@@ -119,7 +120,7 @@ const ClassList: React.FC = () => {
                                 backgroundColor: '#1565c0'
                             }
                         }}
-                        onClick={() => navigate("/class/create")}
+                        onClick={() => navigate(ROUTES.CREATE_CLASS)}
                     >
                         Thêm lớp học
                     </Button>}

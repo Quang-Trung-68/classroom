@@ -6,6 +6,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import ExamGroupForm from "../../../components/forms/ExamGroupForm/ExamGroupForm";
 import React from "react";
+import { generateRoutes } from "../../../router/routes";
 
 const ExamList: React.FC = () => {
     const [open, setOpen] = React.useState(false);
@@ -36,8 +37,6 @@ const ExamList: React.FC = () => {
         const searchLower = debouncedSearchTerm.toLowerCase().trim();
         return examGroupSelecting.filter((exam) => 
             exam.name?.toLowerCase().includes(searchLower) ||
-            exam.description?.toLowerCase().includes(searchLower) ||
-            exam.subject?.toLowerCase().includes(searchLower) ||
             exam.code?.toLowerCase().includes(searchLower)
         );
     }, [examGroupSelecting, debouncedSearchTerm]);
@@ -153,7 +152,7 @@ const ExamList: React.FC = () => {
                         {startedOrOngoingExams.map((exam) => (
                             <Grid size={{ xs: 12, sm: 6, lg: 4 }} key={exam.id}>
                                 <Box
-                                    onClick={() => navigate(`${exam.id}`)}
+                                    onClick={() => navigate(generateRoutes.examDetail(id, exam.id))}
                                     sx={{
                                         cursor: 'pointer',
                                         transition: 'all 0.3s ease-in-out',
@@ -212,7 +211,7 @@ const ExamList: React.FC = () => {
                         {notStartedYetExams.map((exam) => (
                             <Grid size={{ xs: 12, sm: 6, lg: 4 }} key={exam.id}>
                                 <Box
-                                    onClick={() => navigate(`${exam.id}`)}
+                                    onClick={() => navigate(generateRoutes.examDetail(id, exam.id))}
                                     sx={{
                                         cursor: 'pointer',
                                         transition: 'all 0.3s ease-in-out',

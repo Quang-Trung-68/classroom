@@ -4,6 +4,7 @@ import ShareIcon from '@mui/icons-material/Share';
 import PeopleIcon from '@mui/icons-material/People';
 import { useNavigate } from "react-router-dom";
 import type { ClassI } from "../../../types/classes.types";
+import { generateRoutes } from "../../../router/routes";
 
 interface ClassCardProps {
     classElement: ClassI
@@ -41,7 +42,7 @@ const ClassCard: React.FC<ClassCardProps> = ({ classElement }) => {
                 </Box>
 
                 <Button
-                    onClick={() => navigate(`/class/${classElement.id}`)}
+                    onClick={()=> navigate(generateRoutes.classDetail(classElement.id))}
                     variant="contained"
                     size="small"
                     startIcon={<GoClass />}

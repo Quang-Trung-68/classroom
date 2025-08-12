@@ -3,6 +3,7 @@ import React from "react";
 import logo from "@/assets/images/logo.png"
 import imgLanding from "@/assets/images/image-landing.avif"
 import { useNavigate } from "react-router-dom";
+import { ROUTES } from "../../router/routes";
 
 const LandingPage: React.FC = () => {
 
@@ -30,8 +31,8 @@ const LandingPage: React.FC = () => {
                         <Box>Đa dạng bài tập và đề thi, quản lí theo lớp học.</Box>
                         <Box>Làm bài thi trực tuyến, hệ thống chấm bài tự động vào thông minh.</Box>
                         <Box>
-                            <Button onClick={()=> navigate("/login")} sx={{mr:"20px", fontSize:"1.5rem"}} variant="outlined">Đăng nhập</Button>
-                            <Button onClick={()=> navigate("/register")} variant="contained" sx={{fontSize:"1.5rem"}}>Đăng ký</Button>
+                            <Button onClick={()=> navigate(ROUTES.LOGIN)} sx={{mr:"20px", fontSize:"1.5rem", minWidth:"130px"}} variant="outlined">Đăng nhập</Button>
+                            <Button onClick={()=> navigate(ROUTES.REGISTER)} variant="contained" sx={{fontSize:"1.5rem",minWidth:"130px"}}>Đăng ký</Button>
                         </Box>
                     </Box>
                     <Box>

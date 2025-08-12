@@ -7,6 +7,7 @@ import type { ChangePasswordForm, ChangeUserForm } from "../../utils/validation"
 import { changePasswordSchema, changeUserSchema } from "../../utils/validation";
 import { Base64 } from 'js-base64';
 import { useNavigate } from "react-router-dom";
+import { ROUTES } from "../../router/routes";
 
 const Profile: React.FC = () => {
     const { getAccessToken } = useAuth()
@@ -138,10 +139,8 @@ const Profile: React.FC = () => {
                     old_password: Base64.encode(changePasswordForm.oldPassword),
                     new_password: Base64.encode(changePasswordForm.newPassword),
                 };
-                console.log(changePasswordField)
-
                 await changePassword(changePasswordField);
-                navigate("/class");
+                navigate(ROUTES.CLASSES);
 
             } catch (error) {
                 console.error("Failed to change password:", error);
@@ -198,7 +197,7 @@ const Profile: React.FC = () => {
             };
 
             await changeUser(info.id, updateUserData)
-            navigate("/class");
+            navigate(ROUTES.CLASSES);
         } catch (error) {
             console.error("Failed to update user profile:", error);
         }

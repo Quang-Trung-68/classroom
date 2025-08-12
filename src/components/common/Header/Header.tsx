@@ -9,6 +9,7 @@ import logo from "@/assets/images/logo.png"
 import { useAuth, useAuthStore } from "../../../stores/authStore";
 import { jwtDecode } from "jwt-decode";
 import Cookies from "js-cookie";
+import { ROUTES } from "../../../router/routes";
 
 function AccountMenu({ onProfile, onLogout }) {
   const [anchorEl, setAnchorEl] = React.useState(null);
@@ -138,13 +139,13 @@ const Header: React.FC = () => {
   const info = jwtDecode(getAccessToken())
 
   const onProfile = () => {
-    navigate("/profile")
+    navigate(ROUTES.PROFILE)
   }
 
   const onLogout = () => {
     clearClassState();
     clearExamState();
-    navigate("/login");
+    navigate(ROUTES.LOGIN);
     logout();
   }
   return (
@@ -165,8 +166,8 @@ const Header: React.FC = () => {
           }
         </Box>
         <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px" }}>
-          {info.role === "teacher" && <Button sx={{ fontSize: "1.4rem" }} variant="outlined" startIcon={<Add />} onClick={() => navigate("/class/create")} >Tạo lớp</Button>}
-          <Button sx={{ fontSize: "1.4rem" }} startIcon={<Home />} onClick={() => { clearClass(); clearExamGroup(); navigate("/class") }} >Trang chủ</Button>
+          {info.role === "teacher" && <Button sx={{ fontSize: "1.4rem" }} variant="outlined" startIcon={<Add />} onClick={() => navigate(ROUTES.CREATE_CLASS)} >Tạo lớp</Button>}
+          <Button sx={{ fontSize: "1.4rem" }} startIcon={<Home />} onClick={() => { clearClass(); clearExamGroup(); navigate(ROUTES.CLASSES) }} >Trang chủ</Button>
           <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px" }}>
             <AccountMenu onProfile={onProfile} onLogout={onLogout} />
             <Box sx={{ display: "flex", flexDirection: "column", alignItems: "start", justifyContent: "center", gap: "4px" }}>

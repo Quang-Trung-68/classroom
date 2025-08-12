@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import type { FormCreateClassI } from "../../../types/classes.types";
 import { jwtDecode } from "jwt-decode";
 import { useAuth } from "../../../stores/authStore";
+import { ROUTES } from "../../../router/routes";
 
 
 const CreateClass: React.FC = () => {
@@ -31,7 +32,7 @@ const CreateClass: React.FC = () => {
             ]
         }
         createClass(dataSend)
-        navigate("/class")
+        navigate(ROUTES.CLASSES)
     }
 
     return (
@@ -44,7 +45,7 @@ const CreateClass: React.FC = () => {
                 <Grid size={4}>
                     <CreateClassForm formData={formData} setFormData={setFormData} />
                     <Box mt={"40px"} sx={{ display: "flex", justifyContent: "space-evenly" }}>
-                        <Button sx={{ fontSize: "1.4rem", width: "140px" }} variant="outlined" color="error" onClick={() => navigate("/class")} >HỦY</Button>
+                        <Button sx={{ fontSize: "1.4rem", width: "140px" }} variant="outlined" color="error" onClick={() => navigate(ROUTES.CLASSES)} >HỦY</Button>
                         <Button sx={{ fontSize: "1.4rem", width: "140px" }} variant="contained" onClick={onCreate} >TẠO MỚI</Button>
                     </Box>
 

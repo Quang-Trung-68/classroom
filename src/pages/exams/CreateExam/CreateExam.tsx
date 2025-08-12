@@ -4,6 +4,7 @@ import FileUploadIcon from '@mui/icons-material/FileUpload';
 import AnsweringCard from "../../../components/cards/AnsweringCard/AnsweringCard";
 import { useExamState } from "../../../stores/examStore";
 import { useNavigate, useParams } from "react-router-dom";
+import { generateRoutes } from "../../../router/routes";
 
 const RenderQuestions = memo(({ count, onQuestionsChange }) => {
     return (
@@ -193,7 +194,6 @@ const CreateExam = () => {
                     url: examData.file.url
                 });
             }
-
             // TODO: Gửi dữ liệu lên server
             await createExam(examData)
         } catch (error) {
@@ -201,7 +201,7 @@ const CreateExam = () => {
             alert("Có lỗi xảy ra khi tạo đề bài!");
         }
         finally {
-            navigate(`/class/${id}/exam/${exam_group_id}`)
+            navigate(generateRoutes.examDetail(id, exam_group_id))
         }
     };
 

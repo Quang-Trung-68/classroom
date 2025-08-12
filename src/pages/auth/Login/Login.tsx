@@ -13,6 +13,7 @@ import type { LoginData } from "../../../utils/validation";
 import { loginSchema } from "../../../utils/validation";
 import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
+import {  ROUTES } from "../../../router/routes";
 
 const Login: React.FC = () => {
 
@@ -73,12 +74,16 @@ const Login: React.FC = () => {
             setFormErrors({});
             try {
                 await login(formData);
-                navigate("/class")
+                navigate(ROUTES.CLASSES)
 
             } catch (error) {
                 console.log(error);
             }
         }
+    }
+
+    const onRegister = ()=>{
+        navigate(ROUTES.REGISTER);
     }
 
     return (
@@ -121,7 +126,7 @@ const Login: React.FC = () => {
                             }}
                         />                    </Box>
                     <Button sx={{ fontSize: "1.6rem" }} onClick={onSubmit} fullWidth variant="contained">Đăng nhập</Button>
-                    <Button sx={{ fontSize: "1.6rem" }} onClick={() => navigate("/register")} fullWidth variant="text">Đăng ký tài khoản học viên</Button>
+                    <Button sx={{ fontSize: "1.6rem" }} onClick={onRegister} fullWidth variant="text">Đăng ký tài khoản học viên</Button>
                 </Grid>
                 <Grid size={3} >
                 </Grid>

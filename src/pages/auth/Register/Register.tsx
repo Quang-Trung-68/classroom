@@ -7,6 +7,7 @@ import { useState } from "react";
 import { registerSchema } from "../../../utils/validation";
 import type { RegisterFields } from "../../../utils/validation";
 import { useNavigate } from "react-router-dom";
+import { ROUTES } from "../../../router/routes";
 
 const Register: React.FC = () => {
 
@@ -52,7 +53,7 @@ const Register: React.FC = () => {
 
             try {
                 await register(formDataToSubmit)
-                navigate("/login")
+                navigate(ROUTES.LOGIN)
             } catch (error) {
                 console.log(error);
             }
@@ -83,7 +84,7 @@ const Register: React.FC = () => {
                     </Box>
                     <RegisterForm onChange={onChange} formFields={formFields} formErrors={formErrors} />
                     <Box sx={{ display: "flex", gap: "20px" }}>
-                        <Button sx={{ fontSize: "1.4rem" }} onClick={() => navigate("/")} variant="outlined" color="error">HỦY</Button>
+                        <Button sx={{ fontSize: "1.4rem" }} onClick={() => navigate(ROUTES.LOGIN)} variant="outlined" color="error">HỦY</Button>
                         <Button sx={{ fontSize: "1.4rem" }} onClick={onSubmit} variant="contained">ĐĂNG KÝ</Button>
                     </Box>
                 </Grid>

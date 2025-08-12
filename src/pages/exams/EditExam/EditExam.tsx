@@ -6,6 +6,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import AnsweringCard from "../../../components/cards/AnsweringCard/AnsweringCard";
 import { useExamState } from "../../../stores/examStore";
 import { useNavigate, useParams } from "react-router-dom";
+import { generateRoutes } from "../../../router/routes";
 
 const RenderQuestions = memo(({ count, onQuestionsChange, questionsData }) => {
     return (
@@ -368,7 +369,7 @@ const EditExam = () => {
             console.error("Error updating exam:", error);
             alert("Có lỗi xảy ra khi cập nhật đề bài!");
         } finally {
-            navigate(`/class/${id}/exam/${exam_group_id}`);
+            navigate(generateRoutes.examDetail(id, exam_group_id))
         }
     };
 
