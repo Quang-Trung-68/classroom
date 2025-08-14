@@ -1,6 +1,7 @@
-import { Box, Button, Grid, InputAdornment, Paper, TextField } from "@mui/material";
+import { Box, Paper } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { useClassState } from "../../../stores/classStore";
+import { RoleI } from "../../../types/auth.types";
 
 
 const columns = [
@@ -24,7 +25,7 @@ function DataTable({ users }) {
       no: index + 1,
       id: user.id,
       name: user.name,
-      position: user.role === "teacher" ? "Giáo viên" : "Học sinh"
+      position: user.role === RoleI.TEACHER ? "Giáo viên" : "Học sinh"
     }
   })
 
@@ -95,7 +96,7 @@ function DataTable({ users }) {
 }
 
 const MemberList: React.FC = () => {
-  const { classSelecting, getClass } = useClassState()
+  const { classSelecting } = useClassState()
 
   return (
     <>

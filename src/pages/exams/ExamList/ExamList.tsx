@@ -141,7 +141,8 @@ const ExamList: React.FC = () => {
                     sx={{
                         fontWeight: "bold",
                         mb: 2,
-                        fontSize: { xs: "1.4rem", md: "1.8rem" }
+                        fontSize: { xs: "1.4rem", md: "1.8rem" },
+                        color:"#1976d2"
                     }}
                 >
                     Đang thi ({startedOrOngoingExams.length})
@@ -200,7 +201,8 @@ const ExamList: React.FC = () => {
                     sx={{
                         fontWeight: "bold",
                         mb: 2,
-                        fontSize: { xs: "1.4rem", md: "1.8rem" }
+                        fontSize: { xs: "1.4rem", md: "1.8rem" },
+                        color:"#1976d2"
                     }}
                 >
                     Chưa bắt đầu ({notStartedYetExams.length})

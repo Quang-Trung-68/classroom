@@ -7,14 +7,12 @@ import AssignmentCard from "../../../components/cards/AssignmentCard/AssignmentC
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useExamState } from "../../../stores/examStore";
-import { useClassState } from "../../../stores/classStore";
 import ExamGroupForm from "../../../components/forms/ExamGroupForm/ExamGroupForm";
 import { generateRoutes } from "../../../router/routes";
 
 const ExamDetail: React.FC = () => {
     const { id, exam_group_id } = useParams();
     const { examSelecting, getExam, getExamDetailList, examDetailList } = useExamState();
-    const { classSelecting } = useClassState();
     const [openForm, setOpenForm] = useState(false);
     const [action, setAction] = useState();
     const navigate = useNavigate();

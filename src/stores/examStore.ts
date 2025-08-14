@@ -7,7 +7,7 @@ import type {
   ExamResponseI,
   ExamDetailResponseI,
   ExamCreatePayloadI,
-  ExamDetailPayloadI
+  ExamDetailPayloadI,
 } from "../types/exam.types";
 
 interface ExamState {
@@ -22,7 +22,7 @@ interface ExamState {
   getExam: (id: number) => Promise<void>;
   getExamDetailList: (id: number) => Promise<void>;
   getExamDetail: (id: number) => Promise<void>;
-  putExamDetail:(id:number, formData: ExamDetailPayloadI)=> Promise<void>;
+  putExamDetail: (id: number, formData: ExamDetailPayloadI) => Promise<void>;
   createExam: (formData: ExamCreatePayloadI) => Promise<void>;
   clearExamState: () => void;
 }
@@ -112,14 +112,13 @@ export const useExamState = create<ExamState>((set, get) => ({
       console.log(error);
     }
   },
-  putExamDetail: async (id: number, formData: ExamDetailPayloadI)=>{
+  putExamDetail: async (id: number, formData: ExamDetailPayloadI) => {
     try {
       await examService.putExamDetail(id, formData);
     } catch (error) {
       console.log(error);
     }
-  }
-  ,
+  },
   clearExamState: () => {
     set({
       examGroupSelecting: [],
@@ -135,6 +134,21 @@ export const useExamState = create<ExamState>((set, get) => ({
         users: [],
       },
       examDetailList: [],
+      examDetail: {
+        code: "",
+        description: null,
+        exam_group: 0,
+        file: {
+          id: 0,
+          key: "",
+          url: "",
+        },
+        id: 0,
+        name: "",
+        number_of_question: 0,
+        questions: [],
+        total_time: 0,
+      },
     });
   },
 }));

@@ -1,20 +1,55 @@
-// src/api.ts
+// ===== 6. File src/api.ts - Updated với Vite config =====
 import axios from "axios";
 import createAuthRefreshInterceptor from "axios-auth-refresh";
 import Cookies from "js-cookie";
 import { toast } from "react-toastify";
+import { config } from "../config/env"
 
 // ===== TẠO INSTANCE AXIOS ===== //
 export const api = axios.create({
-  baseURL: "/api", // thay đổi nếu domain thật
+  baseURL: "/api", // Sử dụng proxy từ vite.config.ts
+  timeout: config.apiTimeout,
   headers: {
     Accept: "application/json",
+    'Content-Type': 'application/json',
   },
-  // withCredentials: true, // gửi cookie kèm request
+  // withCredentials: true, // Uncomment nếu cần gửi cookie
 });
 
-// ===== TOKEN HANDLING ===== //
+// ===== LOG REQUEST/RESPONSE TRONG DEVELOPMENT ===== //
+if (config.isDevelopment) {
+  api.interceptors.request.use((config) => {
+    console.log('🚀 API Request:', {
+      method: config.method?.toUpperCase(),
+      url: config.url,
+      baseURL: config.baseURL,
+      headers: config.headers,
+    });
+    return config;
+  });
 
+  api.interceptors.response.use(
+    (response) => {
+      console.log('✅ API Response:', {
+        status: response.status,
+        url: response.config.url,
+        data: response.data,
+      });
+      return response;
+    },
+    (error) => {
+      console.error('❌ API Error:', {
+        status: error.response?.status,
+        url: error.config?.url,
+        message: error.message,
+        data: error.response?.data,
+      });
+      return Promise.reject(error);
+    }
+  );
+}
+
+// ===== TOKEN HANDLING (giữ nguyên code của bạn) ===== //
 type AuthStorage = {
   state: {
     access: string;
@@ -23,13 +58,10 @@ type AuthStorage = {
   version: number;
 };
 
-// Hàm lấy access token từ cookie (ưu tiên cookie riêng)
 const getAccessToken = (): string | null => {
-  // Ưu tiên lấy từ cookie riêng (có thời hạn 15p)
   const directToken = Cookies.get("access_token");
   if (directToken) return directToken;
 
-  // Fallback: lấy từ auth-storage
   const authStr = Cookies.get("auth-storage");
   if (!authStr) return null;
   try {
@@ -40,13 +72,10 @@ const getAccessToken = (): string | null => {
   }
 };
 
-// Hàm lấy refresh token từ cookie (ưu tiên cookie riêng)
-const getRefreshRequestI = (): string | null => {
-  // Ưu tiên lấy từ cookie riêng (có thời hạn 7 ngày)
+const getRefreshToken = (): string | null => {
   const directToken = Cookies.get("refresh_token");
   if (directToken) return directToken;
 
-  // Fallback: lấy từ auth-storage
   const authStr = Cookies.get("auth-storage");
   if (!authStr) return null;
   try {
@@ -57,54 +86,45 @@ const getRefreshRequestI = (): string | null => {
   }
 };
 
-// Hàm cập nhật lại cookie auth-storage với thời hạn phân biệt
 const updateAuthStorage = (access: string, refresh: string) => {
-  // Lưu access token với thời hạn 15 phút
+  // Sử dụng config.isProduction thay vì process.env.NODE_ENV
+  const isSecure = config.isProduction;
+  
   Cookies.set("access_token", access, {
     expires: 1 / 96, // 15 phút
-    secure: process.env.NODE_ENV === "production",
+    secure: isSecure,
     sameSite: "strict",
     path: "/",
   });
 
-  // Lưu refresh token với thời hạn 7 ngày
   Cookies.set("refresh_token", refresh, {
     expires: 7, // 7 ngày
-    secure: process.env.NODE_ENV === "production",
+    secure: isSecure,
     sameSite: "strict",
     path: "/",
   });
 
-  // Lưu auth-storage cho compatibility
   const auth: AuthStorage = {
-    state: {
-      access,
-      refresh,
-    },
+    state: { access, refresh },
     version: 0,
   };
+  
   Cookies.set("auth-storage", JSON.stringify(auth), {
     expires: 7,
-    secure: process.env.NODE_ENV === "production",
+    secure: isSecure,
     sameSite: "strict",
     path: "/",
   });
 };
 
-// Hàm xóa toàn bộ token và user data
 const clearAuthData = () => {
-  // Xóa tất cả cookie liên quan
   Cookies.remove("auth-storage", { path: "/" });
   Cookies.remove("access_token", { path: "/" });
   Cookies.remove("refresh_token", { path: "/" });
 };
 
-// Hàm redirect về login với thông báo
-const redirectToLogin = (
-  message: string = "Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại!"
-) => {
+const redirectToLogin = (message: string = "Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại!") => {
   toast.error(message);
-  // Delay nhỏ để toast hiện trước khi redirect
   setTimeout(() => {
     window.location.href = "/login";
   }, 2000);
@@ -119,16 +139,14 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// ===== INTERCEPTOR: XỬ LÝ 401/403 (REFRESH TOKEN) ===== //
+// ===== REFRESH LOGIC ===== //
 const refreshAuthLogic = async (failedRequest: any) => {
-  const RefreshRequestI = getRefreshRequestI();
+  const refreshToken = getRefreshToken();
 
-  if (!RefreshRequestI) {
+  if (!refreshToken) {
     console.warn("No refresh token available");
     clearAuthData();
-    redirectToLogin(
-      "Không tìm thấy thông tin đăng nhập. Vui lòng đăng nhập lại!"
-    );
+    redirectToLogin("Không tìm thấy thông tin đăng nhập. Vui lòng đăng nhập lại!");
     return Promise.reject("No refresh token available");
   }
 
@@ -136,82 +154,60 @@ const refreshAuthLogic = async (failedRequest: any) => {
     console.log("Attempting to refresh token...");
 
     const res = await axios.post("/api/login/get_new_token/", {
-      refresh: RefreshRequestI,
+      refresh: refreshToken,
     });
 
     const newAccessToken = res.data.access;
-    const newRefreshRequestI = res.data.refresh || RefreshRequestI; // Sử dụng refresh mới nếu có
+    const newRefreshToken = res.data.refresh || refreshToken;
 
-    // Cập nhật token mới
-    updateAuthStorage(newAccessToken, newRefreshRequestI);
-
-    // Cập nhật header cho request đã fail
-    failedRequest.response.config.headers[
-      "Authorization"
-    ] = `Bearer ${newAccessToken}`;
+    updateAuthStorage(newAccessToken, newRefreshToken);
+    failedRequest.response.config.headers["Authorization"] = `Bearer ${newAccessToken}`;
 
     console.log("Token refreshed successfully");
     return Promise.resolve();
   } catch (refreshError: any) {
     console.error("Refresh token failed:", refreshError);
 
-    // Xử lý các loại lỗi refresh
     const status = refreshError?.response?.status;
-    const errorMessage =
-      refreshError?.response?.data?.message || refreshError?.message;
+    const errorMessage = refreshError?.response?.data?.message || refreshError?.message;
 
     if (status === 401) {
-      // Refresh token hết hạn hoặc không hợp lệ
       clearAuthData();
       redirectToLogin("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!");
     } else if (status === 403) {
-      // Refresh token bị cấm (có thể user bị khóa)
       clearAuthData();
-      redirectToLogin(
-        "Tài khoản của bạn không có quyền truy cập. Vui lòng liên hệ quản trị viên!"
-      );
+      redirectToLogin("Tài khoản của bạn không có quyền truy cập. Vui lòng liên hệ quản trị viên!");
     } else if (status === 400) {
-      // Refresh token không đúng định dạng
       clearAuthData();
-      redirectToLogin(
-        "Thông tin đăng nhập không hợp lệ. Vui lòng đăng nhập lại!"
-      );
+      redirectToLogin("Thông tin đăng nhập không hợp lệ. Vui lòng đăng nhập lại!");
     } else if (!status) {
-      // Lỗi network
-      toast.error(
-        "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng!"
-      );
+      toast.error("Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng!");
     } else {
-      // Lỗi khác
       clearAuthData();
-      redirectToLogin(
-        `Có lỗi xảy ra: ${errorMessage || "Vui lòng đăng nhập lại!"}`
-      );
+      redirectToLogin(`Có lỗi xảy ra: ${errorMessage || "Vui lòng đăng nhập lại!"}`);
     }
 
     return Promise.reject(refreshError);
   }
 };
 
-// Cài đặt auto-refresh
+// Auto-refresh setup
 createAuthRefreshInterceptor(api, refreshAuthLogic, {
-  statusCodes: [401], // Chỉ refresh khi gặp 401
-  pauseInstanceWhileRefreshing: true, // Tạm dừng các request khác khi đang refresh
+  statusCodes: [401],
+  pauseInstanceWhileRefreshing: true,
 });
 
-// ===== INTERCEPTOR: XỬ LÝ CÁC LỖI KHÁC ===== //
+// ===== ERROR HANDLING ===== //
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     const status = error?.response?.status;
 
-    // Xử lý lỗi 403 không liên quan đến auth (không cần refresh)
     if (status === 403 && error?.response?.data?.code === "PERMISSION_DENIED") {
       toast.error("Bạn không có quyền thực hiện thao tác này!");
       return Promise.reject(error);
     }
 
-    // Xử lý các lỗi server khác
     if (status >= 500) {
       toast.error("Lỗi server. Vui lòng thử lại sau!");
     } else if (status === 404) {
@@ -225,10 +221,9 @@ api.interceptors.response.use(
   }
 );
 
-// ===== EXPORT UTILITY FUNCTIONS ===== //
 export {
   getAccessToken,
-  getRefreshRequestI,
+  getRefreshToken,
   updateAuthStorage,
   clearAuthData,
   redirectToLogin,

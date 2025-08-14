@@ -17,12 +17,12 @@ const ClassCard: React.FC<ClassCardProps> = ({ classElement }) => {
         <Box sx={{
             background: 'linear-gradient(135deg, #667db6 0%, #0082c8 100%)',
             borderRadius: 3,
-            padding: 3,
+            padding: 2,
             color: 'white',
-            height: '200px',
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: 'space-between'
+            justifyContent: 'space-between',
+            height:"100%"
         }}>
             {/* Header */}
             <Box sx={{

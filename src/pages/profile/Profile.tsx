@@ -11,7 +11,7 @@ import { ROUTES } from "../../router/routes";
 
 const Profile: React.FC = () => {
     const { getAccessToken } = useAuth()
-    const { changePassword, changeUser } = useAuthStore()
+    const { changePassword, changeUser, getUser, userInfo } = useAuthStore()
     const info = jwtDecode(getAccessToken())
     const navigate = useNavigate()
 
@@ -43,21 +43,29 @@ const Profile: React.FC = () => {
         [K in keyof ChangePasswordForm]?: string
     }>({})
 
+    const onLoadUser = async () => {
+        await getUser(info.id);
+    }
 
     // Load thông tin user khi component mount
     useEffect(() => {
-        if (info) {
+        onLoadUser();
+    }, []);
+
+    // Effect riêng để update form khi userInfo thay đổi
+    useEffect(() => {
+        if (userInfo && userInfo.id) { // Check userInfo đã load xong
             setChangeUserForm(prev => ({
                 ...prev,
-                name: info.name || "",
-                email: info.email || "",
-                school: info.school || "",
-                parent_name: info.parent_name || "",
-                parent_phone: info.parent_phone || ""
+                name: userInfo.name || "",
+                email: userInfo.email || "",
+                school: userInfo.school || "",
+                parent_name: userInfo.parent_name || "",
+                parent_phone: userInfo.parent_phone || ""
             }));
+            console.log('UserInfo loaded:', userInfo);
         }
-        console.log(info)
-    }, []);
+    }, [userInfo]); // Dependency là userInfo
 
     const onChangePassword = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;

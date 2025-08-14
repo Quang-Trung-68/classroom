@@ -2,11 +2,13 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import Cookies from "js-cookie";
 import { authService } from "../services/authService";
-import type {
-  LoginRequestI,
-  UserCreateRequestI,
-  ChangePasswordRequestI,
-  ChangeUserRequestI,
+import {
+  type LoginRequestI,
+  type UserCreateRequestI,
+  type ChangePasswordRequestI,
+  type ChangeUserRequestI,
+  type GetUserResponseI,
+  RoleI,
 } from "../types/auth.types";
 
 // Định nghĩa type cho auth storage (giống api.ts)
@@ -143,6 +145,7 @@ const updateAuthStorage = (access: string, refresh: string) => {
 interface AuthState {
   access: string | null;
   refresh: string | null;
+  userInfo: GetUserResponseI;
 
   // Actions
   login: (credentials: LoginRequestI) => Promise<void>;
@@ -153,6 +156,7 @@ interface AuthState {
   updateTokens: (access: string, refresh: string) => void;
   changePassword: (formData: ChangePasswordRequestI) => Promise<void>;
   changeUser: (id: number, formData: ChangeUserRequestI) => Promise<void>;
+  getUser: (id: number) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -161,6 +165,25 @@ export const useAuthStore = create<AuthState>()(
       // Initial state
       access: null,
       refresh: null,
+      userInfo: {
+        id: 0,
+        created_at: null,
+        created_by: null,
+        modified_at: "",
+        modified_by: null,
+        deleted_at: null,
+        deleted_by: null,
+        active: false,
+        name: "",
+        email: "",
+        password: "",
+        role: RoleI.STUDENT,
+        status: "",
+        school: "",
+        parent_name: "",
+        parent_phone: "",
+        avata: null,
+      },
 
       login: async (credentials: LoginRequestI) => {
         try {
@@ -204,6 +227,17 @@ export const useAuthStore = create<AuthState>()(
       changeUser: async (id: number, formData: ChangeUserRequestI) => {
         try {
           await authService.changeUser(id, formData);
+        } catch (error) {
+          console.log(error);
+          throw error;
+        }
+      },
+      getUser: async (id: number) => {
+        try {
+          const response = await authService.getUser(id);
+          set({
+            userInfo: response
+          });
         } catch (error) {
           console.log(error);
           throw error;

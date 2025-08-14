@@ -10,6 +10,7 @@ import { useAuth, useAuthStore } from "../../../stores/authStore";
 import { jwtDecode } from "jwt-decode";
 import Cookies from "js-cookie";
 import { ROUTES } from "../../../router/routes";
+import { RoleI } from "../../../types/auth.types";
 
 function AccountMenu({ onProfile, onLogout }) {
   const [anchorEl, setAnchorEl] = React.useState(null);
@@ -166,13 +167,13 @@ const Header: React.FC = () => {
           }
         </Box>
         <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px" }}>
-          {info.role === "teacher" && <Button sx={{ fontSize: "1.4rem" }} variant="outlined" startIcon={<Add />} onClick={() => navigate(ROUTES.CREATE_CLASS)} >Tạo lớp</Button>}
+          {info.role === RoleI.TEACHER && <Button sx={{ fontSize: "1.4rem" }} variant="outlined" startIcon={<Add />} onClick={() => navigate(ROUTES.CREATE_CLASS)} >Tạo lớp</Button>}
           <Button sx={{ fontSize: "1.4rem" }} startIcon={<Home />} onClick={() => { clearClass(); clearExamGroup(); navigate(ROUTES.CLASSES) }} >Trang chủ</Button>
           <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px" }}>
             <AccountMenu onProfile={onProfile} onLogout={onLogout} />
             <Box sx={{ display: "flex", flexDirection: "column", alignItems: "start", justifyContent: "center", gap: "4px" }}>
               <Chip size="small" variant="outlined" sx={{ border: "none", fontWeight: "bolder", fontSize: "1.5rem" }} color="primary" label={info.name} />
-              <Chip size="small" variant="outlined" sx={{ fontSize: "1.3rem", fontWeight: "bold" }} label={info.role === "teacher" ? "Giáo viên" : "Học sinh"} />
+              <Chip size="small" variant="outlined" sx={{ fontSize: "1.3rem", fontWeight: "bold" }} label={info.role === RoleI.TEACHER ? "Giáo viên" : "Học sinh"} />
             </Box>
           </Box>
         </Box>

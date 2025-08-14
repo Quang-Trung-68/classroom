@@ -4,6 +4,11 @@ export interface User {
   email: string;
 }
 
+export enum RoleI  {
+    TEACHER = "teacher",
+     STUDENT = "student"
+}
+
 export interface LoginRequestI {
   email: string;
   password: string;
@@ -63,4 +68,24 @@ export interface ChangeUserRequestI {
     url: string;
     payload: string;
   };
+}
+
+export interface GetUserResponseI {
+  id: number;
+  created_at: string | null;
+  created_by:string | null;
+  modified_at: string;
+  modified_by: null;
+  deleted_at: null;
+  deleted_by: null;
+  active: boolean;
+  name: string;
+  email: string;
+  password: string;
+  role: RoleI;
+  status: string;
+  school: string;
+  parent_name: string;
+  parent_phone: string;
+  avata:string | null;
 }

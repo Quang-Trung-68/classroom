@@ -6,6 +6,7 @@ import type {
   AuthRegisterResponse,
   ChangePasswordRequestI,
   ChangeUserRequestI,
+  GetUserResponseI,
 } from "../types/auth.types";
 import { useLoadingStore } from "../stores/loadingStore";
 import { toast } from "react-toastify";
@@ -95,6 +96,21 @@ export const authService = {
       stopLoading();
     }
   },
+  getUser: async (id:number):Promise<GetUserResponseI>=>{
+    const { startLoading, stopLoading } = useLoadingStore.getState();
+    try {
+      startLoading();
+      const response = await api.get(`master/user/${id}`);
+      return response.data;
+    } catch (error) {
+      toast.error("Lấy thông tin thất bại!");
+      console.log(error);
+      throw error;
+    } finally {
+      stopLoading();
+    }
+  }
+  ,
   changeUser : async (id:number,formData: ChangeUserRequestI): Promise<void> =>{
     const { startLoading, stopLoading } = useLoadingStore.getState();
     try {

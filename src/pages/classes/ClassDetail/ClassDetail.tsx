@@ -9,6 +9,7 @@ import { useClassState } from "../../../stores/classStore";
 import { useEffect } from "react";
 import { useExamState } from "../../../stores/examStore";
 import dayjs from "dayjs";
+import { RoleI } from "../../../types/auth.types";
 
 const columns = [
   { field: 'no', headerName: 'NO.', width: 70 },
@@ -49,8 +50,8 @@ function DataTable({ users }) {
       no: (index + 1),
       id: user.id,
       name: user.name,
-      position: user.role === "teacher" ? "Giáo viên" : "Học sinh",
-      role: user.role === "teacher" ? "🔑" : "",
+      position: user.role === RoleI.TEACHER ? "Giáo viên" : "Học sinh",
+      role: user.role === RoleI.TEACHER ? "🔑" : "",
     }
   })
 
@@ -130,7 +131,23 @@ const ClassDetail: React.FC = () => {
     getExamGroup(Number(id))
   }, [])
 
-  const teacher = classSelecting.users.find(e => e.role === "teacher");
+  const teacher = classSelecting.users.find(e => e.role === RoleI.TEACHER);
+
+  const generateInitials = (name) => {
+    if (!name) return "";
+
+    const words = name.trim().split(/\s+/);
+
+    if (words.length === 1) {
+      // Nếu chỉ có 1 từ → lấy chữ cái đầu
+      return words[0][0].toUpperCase();
+    } else {
+      // Nếu có nhiều từ → lấy chữ cái đầu từ đầu tiên và cuối cùng
+      const firstWord = words[0];
+      const lastWord = words[words.length - 1];
+      return (firstWord[0] + lastWord[0]).toUpperCase();
+    }
+  };
 
 
   return (
@@ -146,15 +163,23 @@ const ClassDetail: React.FC = () => {
             <Box sx={{ display: "flex", justifyContent: "space-between" }}>
               <Box sx={{ display: "flex", alignItems: "center", gap: "10px" }}>
                 <Box>Chia sẻ lớp học:</Box>
-                <Button startIcon={<ContentCopyIcon />} variant="contained" sx={{p:1, color:"#fff", fontSize:"1.2rem"}} >Sao chép liên kết</Button>
+                <Button startIcon={<ContentCopyIcon />} variant="contained" sx={{ p: 1, color: "#fff", fontSize: "1.2rem" }} >Sao chép liên kết</Button>
               </Box>
               <Box>
                 <AvatarGroup max={4}>
-                  <Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
-                  <Avatar alt="Travis Howard" src="/static/images/avatar/2.jpg" />
-                  <Avatar alt="Cindy Baker" src="/static/images/avatar/3.jpg" />
-                  <Avatar alt="Agnes Walker" src="/static/images/avatar/4.jpg" />
-                  <Avatar alt="Trevor Henderson" src="/static/images/avatar/5.jpg" />
+                  {classSelecting.users.map((user) => (
+                    <Avatar
+                      key={user.id}
+                      alt={user.name}
+                      sx={{
+                        bgcolor: '#1976d2',
+                        fontSize: '14px',
+                        fontWeight: '600'
+                      }}
+                    >
+                      {generateInitials(user.name)}
+                    </Avatar>
+                  ))}
                 </AvatarGroup>
               </Box>
             </Box>
@@ -170,7 +195,7 @@ const ClassDetail: React.FC = () => {
             </Grid>
           </Grid>
           <Grid container>
-            <Box sx={{fontWeight:"800", mb:2,mt:3, fontSize:"2.2rem"}}>Danh sách thành viên</Box>
+            <Box sx={{ fontWeight: "800", mb: 2, mt: 3, fontSize: "2.2rem" }}>Danh sách thành viên</Box>
             <DataTable users={classSelecting.users} />
           </Grid>
         </Grid>
@@ -179,7 +204,7 @@ const ClassDetail: React.FC = () => {
             <NoteAltIcon />
             <Box>Hoạt động gần đây</Box>
           </Box>
-          <Box sx={{height:"500px", overflow:"auto"}}>
+          <Box sx={{ height: "500px", overflow: "auto" }}>
             <Box sx={{ display: "flex", alignItems: "start", justifyContent: "center", flexDirection: "column", gap: "20px" }}>
               {
                 examGroupSelecting.map((examSelecting => {

@@ -24,8 +24,6 @@ const CreateClass: React.FC = () => {
     const info = jwtDecode(getAccessToken())
 
     const onCreate = () => {
-
-
         const dataSend = {
             ...formData, users: [
                 info.id

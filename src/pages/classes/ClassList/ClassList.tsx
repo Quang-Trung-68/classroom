@@ -8,6 +8,7 @@ import { useEffect, useState, useMemo } from "react";
 import { jwtDecode } from "jwt-decode";
 import { useAuth } from "../../../stores/authStore";
 import { ROUTES } from "../../../router/routes";
+import { RoleI } from "../../../types/auth.types";
 
 const ClassList: React.FC = () => {
     const { classes, getClasses, clearClass } = useClassState();
@@ -105,7 +106,7 @@ const ClassList: React.FC = () => {
                         }}
                     />
 
-                    {info.role === "teacher" && <Button
+                    {info.role === RoleI.TEACHER && <Button
                         variant="contained"
                         startIcon={<Add />}
                         sx={{
@@ -122,7 +123,7 @@ const ClassList: React.FC = () => {
                         }}
                         onClick={() => navigate(ROUTES.CREATE_CLASS)}
                     >
-                        Thêm lớp học
+                        Thêm lớp
                     </Button>}
                 </Box>
             </Box>
