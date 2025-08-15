@@ -5,9 +5,12 @@ import Cookies from "js-cookie";
 import { toast } from "react-toastify";
 import { config } from "../config/env"
 
+const baseURL = import.meta.env.VITE_API_BASE_URL;
+
 // ===== TẠO INSTANCE AXIOS ===== //
 export const api = axios.create({
-  baseURL: "/api", // Sử dụng proxy từ vite.config.ts
+  // baseURL: "/api", // Sử dụng proxy từ vite.config.ts
+  baseURL: baseURL,
   timeout: config.apiTimeout,
   headers: {
     Accept: "application/json",
