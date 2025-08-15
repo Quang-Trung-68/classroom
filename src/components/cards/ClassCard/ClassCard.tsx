@@ -42,7 +42,7 @@ const ClassCard: React.FC<ClassCardProps> = ({ classElement }) => {
                 </Box>
 
                 <Button
-                    onClick={()=> navigate(generateRoutes.classDetail(classElement.id))}
+                    onClick={()=> navigate(generateRoutes.classDetail((classElement.id)))}
                     variant="contained"
                     size="small"
                     startIcon={<GoClass />}

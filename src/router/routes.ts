@@ -22,7 +22,7 @@ export const ROUTES = {
 
 // Helper functions để generate dynamic routes
 export const generateRoutes = {
-  classDetail: (id: string) => `/class/${id}`,
+  classDetail: (id: number) => `/class/${id}`,
   classExams: (id: string) => `/class/${id}/exam`,
   examDetail: (classId: string, examGroupId: string) => 
     `/class/${classId}/exam/${examGroupId}`,

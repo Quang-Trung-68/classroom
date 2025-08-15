@@ -12,7 +12,7 @@ export interface UserI {
 
 export interface ClassI {
   code: string;
-  id?: number;
+  id: number;
   name: string;
   users: UserI[];
 }
