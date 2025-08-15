@@ -201,8 +201,8 @@ const ClassDetail: React.FC = () => {
         </Grid>
         <Grid size={4} fontSize={24} padding={"30px"} sx={{ display: "flex", flexDirection: "column", gap: "40px", alignItems: "start" }} >
           <Box sx={{ display: "flex", alignItems: "center", justifyContent: "start", gap: "10px" }} >
-            <NoteAltIcon />
-            <Box>Hoạt động gần đây</Box>
+            <NoteAltIcon sx={{fontSize:"2.2rem"}}/>
+            <Box sx={{fontSize:"1.8rem"}}>Hoạt động gần đây</Box>
           </Box>
           <Box sx={{ height: "500px", overflow: "auto" }}>
             <Box sx={{ display: "flex", alignItems: "start", justifyContent: "center", flexDirection: "column", gap: "20px" }}>
