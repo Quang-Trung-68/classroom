@@ -7,6 +7,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import ExamGroupForm from "../../../components/forms/ExamGroupForm/ExamGroupForm";
 import React from "react";
 import { generateRoutes } from "../../../router/routes";
+import { useDebounce } from "../../../hooks/useDebounce";
 
 const ExamList: React.FC = () => {
     const [open, setOpen] = React.useState(false);
@@ -260,21 +261,5 @@ const ExamList: React.FC = () => {
     );
 };
 
-// Custom useDebounce hook (nếu chưa có)
-function useDebounce<T>(value: T, delay: number): T {
-    const [debouncedValue, setDebouncedValue] = useState<T>(value);
-
-    useEffect(() => {
-        const handler = setTimeout(() => {
-            setDebouncedValue(value);
-        }, delay);
-
-        return () => {
-            clearTimeout(handler);
-        };
-    }, [value, delay]);
-
-    return debouncedValue;
-}
 
 export default ExamList;

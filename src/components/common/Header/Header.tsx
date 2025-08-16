@@ -1,5 +1,5 @@
 import { Avatar, Box, Button, Chip, Divider, IconButton, ListItemIcon, Menu, MenuItem, Tooltip, Typography } from "@mui/material";
-import React from "react";
+import React, { memo, useCallback, useMemo } from "react";
 import { Add, Logout, Person, PersonAdd, Settings } from "@mui/icons-material"
 import { Home } from '@mui/icons-material';
 import { useNavigate } from "react-router-dom";
@@ -8,21 +8,35 @@ import { useExamState } from "../../../stores/examStore";
 import logo from "@/assets/images/logo.png"
 import { useAuth, useAuthStore } from "../../../stores/authStore";
 import { jwtDecode } from "jwt-decode";
-import Cookies from "js-cookie";
 import { ROUTES } from "../../../router/routes";
 import { RoleI } from "../../../types/auth.types";
 
-function AccountMenu({ onProfile, onLogout }) {
-  const [anchorEl, setAnchorEl] = React.useState(null);
+interface AccountMenuProps {
+  onProfile: () => void;
+  onLogout: () => void;
+}
+
+const AccountMenu: React.FC<AccountMenuProps> = memo(({ onProfile, onLogout }) => {
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
-  const handleClick = (event) => {
+  const handleClick = useCallback((event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
-  };
+  }, []);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setAnchorEl(null);
-  };
+  }, []);
+
+  const handleProfileClick = useCallback(() => {
+    handleClose();
+    onProfile();
+  }, [onProfile, handleClose]);
+
+  const handleLogoutClick = useCallback(() => {
+    handleClose();
+    onLogout();
+  }, [onLogout, handleClose]);
 
   return (
     <>
@@ -77,13 +91,7 @@ function AccountMenu({ onProfile, onLogout }) {
           }
         }}
       >
-        <MenuItem
-          onClick={() => {
-            handleClose();
-            onProfile();
-          }}
-          sx={{ py: 1.5 }}
-        >
+        <MenuItem onClick={handleProfileClick} sx={{ py: 1.5 }}>
           <ListItemIcon>
             <Person fontSize="large" />
           </ListItemIcon>
@@ -109,10 +117,7 @@ function AccountMenu({ onProfile, onLogout }) {
         <Divider sx={{ my: 0.5 }} />
 
         <MenuItem
-          onClick={() => {
-            handleClose();
-            onLogout();
-          }}
+          onClick={handleLogoutClick}
           sx={{
             py: 1.5,
             color: 'error.main',
@@ -130,56 +135,125 @@ function AccountMenu({ onProfile, onLogout }) {
       </Menu>
     </>
   );
-}
+});
+
+AccountMenu.displayName = 'AccountMenu';
+
 const Header: React.FC = () => {
   const navigate = useNavigate();
-  const { classSelecting, clearClass, clearClassState } = useClassState()
-  const { clearExamGroup, clearExamState } = useExamState()
-  const { logout } = useAuthStore()
-  const { getAccessToken } = useAuth()
-  const info = jwtDecode(getAccessToken())
+  
+  // Chỉ lấy những giá trị cần thiết từ store
+  const classSelectingName = useClassState((state) => state.classSelecting?.name);
+  const clearClass = useClassState((state) => state.clearClass);
+  const clearClassState = useClassState((state) => state.clearClassState);
+  const clearExamGroup = useExamState((state) => state.clearExamGroup);
+  const clearExamState = useExamState((state) => state.clearExamState);
+  const { logout } = useAuthStore();
+  const { getAccessToken } = useAuth();
 
-  const onProfile = () => {
-    navigate(ROUTES.PROFILE)
-  }
+  // Memoize user info để tránh decode lại token không cần thiết
+  const userInfo = useMemo(() => {
+    try {
+      return jwtDecode(getAccessToken());
+    } catch (error) {
+      console.error('Error decoding token:', error);
+      return null;
+    }
+  }, [getAccessToken]);
 
-  const onLogout = () => {
+  // Memoize derived values
+  const isTeacher = useMemo(() => userInfo?.role === RoleI.TEACHER, [userInfo?.role]);
+  const userRoleLabel = useMemo(() => isTeacher ? "Giáo viên" : "Học sinh", [isTeacher]);
+
+  // Memoize callback functions
+  const handleCreateClass = useCallback(() => {
+    navigate(ROUTES.CREATE_CLASS);
+  }, [navigate]);
+
+  const handleGoHome = useCallback(() => {
+    clearClass();
+    clearExamGroup();
+    navigate(ROUTES.CLASSES);
+  }, [clearClass, clearExamGroup, navigate]);
+
+  const handleProfile = useCallback(() => {
+    navigate(ROUTES.PROFILE);
+  }, [navigate]);
+
+  const handleLogout = useCallback(() => {
     clearClassState();
     clearExamState();
     navigate(ROUTES.LOGIN);
     logout();
+  }, [clearClassState, clearExamState, navigate, logout]);
+
+  // Memoize logo section
+  const logoSection = useMemo(() => (
+    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "start", gap: "10px" }}>
+      <img width={"10%"} src={logo} alt="BK Classroom Logo" />
+      <Box component={"span"}>BK Classroom</Box>
+    </Box>
+  ), []);
+
+  if (!userInfo) {
+    return null; // hoặc loading spinner
   }
+
   return (
-    <header
-
-      style={{ background: '#eee', padding: "10px 30px" }}
-
-    >
+    <header style={{ background: '#eee', padding: "10px 30px" }}>
       <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-
         <Box sx={{ fontWeight: "bold", fontSize: "2.4rem" }}>
-          {
-            classSelecting.name ||
-            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "start", gap: "10px" }}>
-              <img width={"10%"} src={logo} />
-              <Box component={"span"}>BK Classroom</Box>
-            </Box>
-          }
+          {classSelectingName || logoSection}
         </Box>
+        
         <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px" }}>
-          {info.role === RoleI.TEACHER && <Button sx={{ fontSize: "1.4rem" }} variant="outlined" startIcon={<Add />} onClick={() => navigate(ROUTES.CREATE_CLASS)} >Tạo lớp</Button>}
-          <Button sx={{ fontSize: "1.4rem" }} startIcon={<Home />} onClick={() => { clearClass(); clearExamGroup(); navigate(ROUTES.CLASSES) }} >Trang chủ</Button>
+          {isTeacher && (
+            <Button 
+              sx={{ fontSize: "1.4rem" }} 
+              variant="outlined" 
+              startIcon={<Add />} 
+              onClick={handleCreateClass}
+            >
+              Tạo lớp
+            </Button>
+          )}
+          
+          <Button 
+            sx={{ fontSize: "1.4rem" }} 
+            startIcon={<Home />} 
+            onClick={handleGoHome}
+          >
+            Trang chủ
+          </Button>
+          
           <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px" }}>
-            <AccountMenu onProfile={onProfile} onLogout={onLogout} />
-            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "start", justifyContent: "center", gap: "4px" }}>
-              <Chip size="small" variant="outlined" sx={{ border: "none", fontWeight: "bolder", fontSize: "1.5rem" }} color="primary" label={info.name} />
-              <Chip size="small" variant="outlined" sx={{ fontSize: "1.3rem", fontWeight: "bold" }} label={info.role === RoleI.TEACHER ? "Giáo viên" : "Học sinh"} />
+            <AccountMenu onProfile={handleProfile} onLogout={handleLogout} />
+            <Box sx={{ 
+              display: "flex", 
+              flexDirection: "column", 
+              alignItems: "start", 
+              justifyContent: "center", 
+              gap: "4px" 
+            }}>
+              <Chip 
+                size="small" 
+                variant="outlined" 
+                sx={{ border: "none", fontWeight: "bolder", fontSize: "1.5rem" }} 
+                color="primary" 
+                label={userInfo.name} 
+              />
+              <Chip 
+                size="small" 
+                variant="outlined" 
+                sx={{ fontSize: "1.3rem", fontWeight: "bold" }} 
+                label={userRoleLabel} 
+              />
             </Box>
           </Box>
         </Box>
       </Box>
     </header>
-  )
+  );
 };
 
-export default Header
+export default Header;

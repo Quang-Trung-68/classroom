@@ -3,6 +3,7 @@ import GoClass from '@mui/icons-material/Login';
 import ShareIcon from '@mui/icons-material/Share';
 import PeopleIcon from '@mui/icons-material/People';
 import { useNavigate } from "react-router-dom";
+import { memo, useCallback } from "react";
 import type { ClassI } from "../../../types/classes.types";
 import { generateRoutes } from "../../../router/routes";
 
@@ -10,8 +11,18 @@ interface ClassCardProps {
     classElement: ClassI
 }
 
-const ClassCard: React.FC<ClassCardProps> = ({ classElement }) => {
+const ClassCard: React.FC<ClassCardProps> = memo(({ classElement }) => {
     const navigate = useNavigate()
+
+    // Memoize callback functions để tránh re-render không cần thiết
+    const handleGoToClass = useCallback(() => {
+        navigate(generateRoutes.classDetail(classElement.id))
+    }, [navigate, classElement.id])
+
+    const handleShare = useCallback(() => {
+        // Thêm logic chia sẻ ở đây nếu cần
+        console.log('Share class:', classElement.code)
+    }, [classElement.code])
 
     return (
         <Box sx={{
@@ -42,7 +53,7 @@ const ClassCard: React.FC<ClassCardProps> = ({ classElement }) => {
                 </Box>
 
                 <Button
-                    onClick={()=> navigate(generateRoutes.classDetail((classElement.id)))}
+                    onClick={handleGoToClass}
                     variant="contained"
                     size="small"
                     startIcon={<GoClass />}
@@ -109,6 +120,7 @@ const ClassCard: React.FC<ClassCardProps> = ({ classElement }) => {
                 />
 
                 <Button
+                    onClick={handleShare}
                     variant="text"
                     size="small"
                     startIcon={<ShareIcon />}
@@ -128,6 +140,9 @@ const ClassCard: React.FC<ClassCardProps> = ({ classElement }) => {
             </Box>
         </Box>
     )
-}
+})
+
+// Đặt displayName cho component để dễ debug
+ClassCard.displayName = 'ClassCard'
 
 export default ClassCard;

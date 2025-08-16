@@ -4,16 +4,17 @@ import { Add } from "@mui/icons-material";
 import { Search } from "@mui/icons-material";
 import { Outlet, useNavigate } from "react-router-dom";
 import { useClassState } from "../../../stores/classStore";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { jwtDecode } from "jwt-decode";
 import { useAuth } from "../../../stores/authStore";
 import { ROUTES } from "../../../router/routes";
 import { RoleI } from "../../../types/auth.types";
+import { useDebounce } from "../../../hooks/useDebounce";
 
 const ClassList: React.FC = () => {
     const { classes, getClasses, clearClass } = useClassState();
     const { getAccessToken } = useAuth()
-    const info = jwtDecode(getAccessToken())
+    const info = useMemo(() => jwtDecode(getAccessToken()), [getAccessToken])
     const navigate = useNavigate()
 
     // State cho search
@@ -25,7 +26,7 @@ const ClassList: React.FC = () => {
     useEffect(() => {
         clearClass()
         getClasses();
-    }, []);
+    }, [clearClass, getClasses]);
 
     // Lọc classes dựa trên search term
     const filteredClasses = useMemo(() => {
@@ -41,10 +42,17 @@ const ClassList: React.FC = () => {
         );
     }, [classes, debouncedSearchTerm]);
 
-    // Handle search input change
-    const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    // Memoize callback functions
+    const handleSearchChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         setSearchTerm(event.target.value);
-    };
+    }, []);
+
+    const handleCreateClass = useCallback(() => {
+        navigate(ROUTES.CREATE_CLASS);
+    }, [navigate]);
+
+    // Check if user is teacher
+    const isTeacher = useMemo(() => info.role === RoleI.TEACHER, [info.role]);
 
     return (
         <Box sx={{ p: 3 }}>
@@ -106,25 +114,27 @@ const ClassList: React.FC = () => {
                         }}
                     />
 
-                    {info.role === RoleI.TEACHER && <Button
-                        variant="contained"
-                        startIcon={<Add />}
-                        sx={{
-                            fontSize: "1.4rem",
-                            fontWeight: 600,
-                            px: 3,
-                            py: 1.2,
-                            borderRadius: 2,
-                            textTransform: 'none',
-                            backgroundColor: '#1976d2',
-                            '&:hover': {
-                                backgroundColor: '#1565c0'
-                            }
-                        }}
-                        onClick={() => navigate(ROUTES.CREATE_CLASS)}
-                    >
-                        Thêm lớp
-                    </Button>}
+                    {isTeacher && (
+                        <Button
+                            variant="contained"
+                            startIcon={<Add />}
+                            sx={{
+                                fontSize: "1.4rem",
+                                fontWeight: 600,
+                                px: 3,
+                                py: 1.2,
+                                borderRadius: 2,
+                                textTransform: 'none',
+                                backgroundColor: '#1976d2',
+                                '&:hover': {
+                                    backgroundColor: '#1565c0'
+                                }
+                            }}
+                            onClick={handleCreateClass}
+                        >
+                            Thêm lớp
+                        </Button>
+                    )}
                 </Box>
             </Box>
 
@@ -174,23 +184,6 @@ const ClassList: React.FC = () => {
             <Outlet />
         </Box>
     )
-}
-
-
-function useDebounce<T>(value: T, delay: number): T {
-    const [debouncedValue, setDebouncedValue] = useState<T>(value);
-
-    useEffect(() => {
-        const handler = setTimeout(() => {
-            setDebouncedValue(value);
-        }, delay);
-
-        return () => {
-            clearTimeout(handler);
-        };
-    }, [value, delay]);
-
-    return debouncedValue;
 }
 
 export default ClassList;
