@@ -19,6 +19,7 @@ import FileUploadIcon from "@mui/icons-material/FileUpload";
 import PreviewIcon from "@mui/icons-material/Preview";
 import DeleteIcon from "@mui/icons-material/Delete";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
+import ImageIcon from "@mui/icons-material/Image";
 import ArticleIcon from "@mui/icons-material/Article";
 import TextSnippetIcon from "@mui/icons-material/TextSnippet";
 import VisibilityIcon from "@mui/icons-material/Visibility";
@@ -48,6 +49,12 @@ const getFileIcon = (fileType?: string) => {
   switch (fileType) {
     case "application/pdf":
       return <PictureAsPdfIcon sx={{ color: "#d32f2f" }} />;
+    case "image/jpeg":
+    case "image/jpg":
+    case "image/png":
+    case "image/gif":
+    case "image/webp":
+      return <ImageIcon sx={{ color: "#ff9800" }} />;
     case "application/msword":
     case "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
       return <ArticleIcon sx={{ color: "#1976d2" }} />;
@@ -68,12 +75,11 @@ const formatFileSize = (bytes: number) => {
 
 const CreateExam: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [selectedFile, setSelectedFile] = useState<any>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   // file preview states
   const [textPreview, setTextPreview] = useState<string>("");
-  const [fileUrl, setFileUrl] = useState<string>("");
-  const [googleViewerUrl, setGoogleViewerUrl] = useState<string>("");
+  const [blobUrl, setBlobUrl] = useState<string>("");
 
   // dialog fullscreen preview
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -123,6 +129,15 @@ const CreateExam: React.FC = () => {
     switch (ext) {
       case "pdf":
         return "application/pdf";
+      case "jpg":
+      case "jpeg":
+        return "image/jpeg";
+      case "png":
+        return "image/png";
+      case "gif":
+        return "image/gif";
+      case "webp":
+        return "image/webp";
       case "doc":
         return "application/msword";
       case "docx":
@@ -135,19 +150,18 @@ const CreateExam: React.FC = () => {
   }, []);
 
   // Function to create a temporary URL for the file
-  const createFileURL = (file: File) => {
+  const createFileBlobURL = (file: File) => {
     return URL.createObjectURL(file);
   };
 
-  // Function to generate Google Drive viewer URL
-  const generateGoogleViewerURL = (fileUrl: string, fileType: string) => {
-    // For PDF and Office documents, use Google Docs viewer
-    if (fileType === "application/pdf" || 
-        fileType === "application/msword" || 
-        fileType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
-      return `https://docs.google.com/viewer?url=${encodeURIComponent(fileUrl)}&embedded=true`;
-    }
-    return "";
+  // Function to check if file is an image
+  const isImageFile = (fileType: string) => {
+    return fileType.startsWith("image/");
+  };
+
+  // Function to check if file is PDF
+  const isPDFFile = (fileType: string) => {
+    return fileType === "application/pdf";
   };
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -161,8 +175,12 @@ const CreateExam: React.FC = () => {
     try {
       setFileProcessing(true);
       setTextPreview("");
-      setFileUrl("");
-      setGoogleViewerUrl("");
+      
+      // Revoke previous blob URL to prevent memory leaks
+      if (blobUrl) {
+        URL.revokeObjectURL(blobUrl);
+        setBlobUrl("");
+      }
 
       // validation
       if (file.size > 10 * 1024 * 1024) {
@@ -174,6 +192,11 @@ const CreateExam: React.FC = () => {
 
       const allowedTypes = [
         "application/pdf",
+        "image/jpeg",
+        "image/jpg", 
+        "image/png",
+        "image/gif",
+        "image/webp",
         "application/msword",
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         "text/plain",
@@ -182,7 +205,7 @@ const CreateExam: React.FC = () => {
       // Some browsers may give empty type for certain files; fallback to extension
       const fileType = file.type && file.type !== "" ? file.type : getFileTypeFromName(file.name);
       if (!allowedTypes.includes(fileType)) {
-        alert("Định dạng file không được hỗ trợ!");
+        alert("Định dạng file không được hỗ trợ! Chỉ hỗ trợ PDF, ảnh (JPG, PNG, GIF, WebP), Word và file text.");
         setSelectedFile(null);
         setFileProcessing(false);
         return;
@@ -191,38 +214,25 @@ const CreateExam: React.FC = () => {
       // create base64 payload for server side if needed
       const base64String = await fileToBase64(file);
 
-      // Create temporary URL for the file
-      const tempUrl = createFileURL(file);
-      setFileUrl(tempUrl);
+      // Create blob URL for preview
+      const newBlobUrl = createFileBlobURL(file);
+      setBlobUrl(newBlobUrl);
 
       setExamData((prev: any) => ({
         ...prev,
         file: {
           id: null,
           payload: base64String,
-          url: tempUrl,
+          url: newBlobUrl,
         },
       }));
 
-      // Handle different file types
+      // Handle text files separately
       if (fileType === "text/plain") {
         const text = await file.text();
         setTextPreview(text);
-      } else {
-        // For PDF and Office documents, generate Google viewer URL
-        // Note: Google viewer needs a publicly accessible URL
-        // For local files, you might need to upload to a temporary hosting service
-        // or use a different approach like PDF.js for PDFs
-        
-        // For demonstration, we'll show how to construct the URL
-        // In production, you'd need to upload the file to a public location first
-        const googleUrl = generateGoogleViewerURL(tempUrl, fileType);
-        setGoogleViewerUrl(googleUrl);
-        
-        // Note: Google Viewer won't work with blob URLs (createObjectURL)
-        // You'll need to upload the file to a publicly accessible location
-        console.log("Google Viewer URL (won't work with blob):", googleUrl);
       }
+
     } catch (error) {
       console.error("Error processing file:", error);
       alert("Có lỗi xảy ra khi xử lý file!");
@@ -235,26 +245,25 @@ const CreateExam: React.FC = () => {
 
   const handleRemoveFile = () => {
     // Clean up object URL to prevent memory leaks
-    if (fileUrl) {
-      URL.revokeObjectURL(fileUrl);
+    if (blobUrl) {
+      URL.revokeObjectURL(blobUrl);
+      setBlobUrl("");
     }
     
     setSelectedFile(null);
     setTextPreview("");
-    setFileUrl("");
-    setGoogleViewerUrl("");
     setExamData((prev: any) => ({ ...prev, file: { id: null, payload: "", url: "" } }));
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  // Clean up object URLs when component unmounts
+  // Clean up object URLs when component unmounts or blobUrl changes
   useEffect(() => {
     return () => {
-      if (fileUrl) {
-        URL.revokeObjectURL(fileUrl);
+      if (blobUrl) {
+        URL.revokeObjectURL(blobUrl);
       }
     };
-  }, [fileUrl]);
+  }, [blobUrl]);
 
   const handleInputChange = (field: string) => (event: any) => {
     let value = event.target.value;
@@ -309,11 +318,155 @@ const CreateExam: React.FC = () => {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    } else if (examData.file?.url) {
-      window.open(examData.file.url, "_blank");
+    } else if (blobUrl) {
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = selectedFile?.name || "file";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     } else {
       alert("Không có file để tải xuống");
     }
+  };
+
+  // Render preview content based on file type
+  const renderPreviewContent = () => {
+    if (fileProcessing) {
+      return (
+        <Box sx={{ textAlign: "center", py: 4 }}>
+          <Typography>Đang xử lý nội dung file...</Typography>
+        </Box>
+      );
+    }
+
+    if (textPreview) {
+      return (
+        <Box
+          component="pre"
+          sx={{
+            whiteSpace: "pre-wrap",
+            fontFamily: "monospace",
+            fontSize: "0.875rem",
+            backgroundColor: "#f8f9fa",
+            p: 2,
+            borderRadius: 1,
+            border: "1px solid #e9ecef",
+            margin: 0,
+            maxHeight: 420,
+            overflow: "auto",
+          }}
+        >
+          {textPreview}
+        </Box>
+      );
+    }
+
+    if (blobUrl && selectedFile) {
+      const fileType = selectedFile.type || getFileTypeFromName(selectedFile.name);
+      
+      if (isImageFile(fileType)) {
+        return (
+          <Box sx={{ textAlign: "center" }}>
+            <img
+              src={blobUrl}
+              alt="Preview"
+              style={{
+                maxWidth: "100%",
+                maxHeight: "420px",
+                border: "1px solid #e9ecef",
+                borderRadius: "4px",
+                objectFit: "contain"
+              }}
+              onError={() => {
+                console.error("Failed to load image preview");
+              }}
+            />
+          </Box>
+        );
+      }
+
+      if (isPDFFile(fileType)) {
+        return (
+          <Box sx={{ width: "100%", height: 400 }}>
+            <iframe
+              src={blobUrl}
+              width="100%"
+              height="100%"
+              frameBorder="0"
+              title="PDF Preview"
+              style={{
+                border: "1px solid #e9ecef",
+                borderRadius: "4px",
+              }}
+              onError={() => {
+                console.error("Failed to load PDF preview");
+              }}
+            />
+          </Box>
+        );
+      }
+    }
+
+    return (
+      <Box sx={{ p: 3, textAlign: "center", backgroundColor: "#f8f9fa", borderRadius: 1, border: "1px solid #e9ecef" }}>
+        <Typography variant="body2" color="text.secondary">
+          Không có nội dung preview cho loại file này.
+        </Typography>
+      </Box>
+    );
+  };
+
+  // Render fullscreen preview content
+  const renderFullscreenPreviewContent = () => {
+    if (textPreview) {
+      return (
+        <Box sx={{ p: 3, height: "100%", overflow: "auto" }}>
+          <Box component="pre" sx={{ whiteSpace: "pre-wrap", fontFamily: "monospace" }}>
+            {textPreview}
+          </Box>
+        </Box>
+      );
+    }
+
+    if (blobUrl && selectedFile) {
+      const fileType = selectedFile.type || getFileTypeFromName(selectedFile.name);
+      
+      if (isImageFile(fileType)) {
+        return (
+          <Box sx={{ p: 2, textAlign: "center", height: "100%", overflow: "auto" }}>
+            <img
+              src={blobUrl}
+              alt="Full Preview"
+              style={{
+                maxWidth: "100%",
+                maxHeight: "100%",
+                objectFit: "contain"
+              }}
+            />
+          </Box>
+        );
+      }
+
+      if (isPDFFile(fileType)) {
+        return (
+          <iframe
+            src={blobUrl}
+            width="100%"
+            height="100%"
+            frameBorder="0"
+            title="Full Screen PDF Preview"
+            style={{ border: "none" }}
+          />
+        );
+      }
+    }
+
+    return (
+      <Box sx={{ p: 4 }}>
+        <Typography>Không có preview để hiển thị.</Typography>
+      </Box>
+    );
   };
 
   return (
@@ -361,7 +514,7 @@ const CreateExam: React.FC = () => {
                   }}
                   disabled={fileProcessing}
                 >
-                  Tải lên file từ máy
+                  Tải lên file từ máy (PDF, Ảnh, Word, Text)
                 </Button>
               ) : (
                 <Card sx={{ width: "100%" }}>
@@ -392,7 +545,7 @@ const CreateExam: React.FC = () => {
                       </Button>
 
                       {/* Preview full-screen button */}
-                      {(textPreview || fileUrl) && (
+                      {(textPreview || blobUrl) && (
                         <Button
                           size="small"
                           variant="contained"
@@ -405,7 +558,7 @@ const CreateExam: React.FC = () => {
                         </Button>
                       )}
 
-                      {(examData.file.payload || examData.file.url) && (
+                      {(examData.file.payload || blobUrl) && (
                         <Button
                           size="small"
                           variant="outlined"
@@ -439,74 +592,20 @@ const CreateExam: React.FC = () => {
                     )}
                   </Typography>
 
-                  {fileProcessing ? (
-                    <Box sx={{ textAlign: "center", py: 4 }}>
-                      <Typography>Đang xử lý nội dung file...</Typography>
-                    </Box>
-                  ) : (
-                    <Box sx={{ minHeight: 200, maxHeight: 600, overflow: "auto" }}>
-                      {textPreview ? (
-                        <Box
-                          component="pre"
-                          sx={{
-                            whiteSpace: "pre-wrap",
-                            fontFamily: "monospace",
-                            fontSize: "0.875rem",
-                            backgroundColor: "#f8f9fa",
-                            p: 2,
-                            borderRadius: 1,
-                            border: "1px solid #e9ecef",
-                            margin: 0,
-                            maxHeight: 420,
-                            overflow: "auto",
-                          }}
-                        >
-                          {textPreview}
-                        </Box>
-                      ) : fileUrl ? (
-                        <Box sx={{ width: "100%", height: 400 }}>
-                          {/* Note: This iframe approach works best with publicly accessible URLs */}
-                          {/* For local files, you might need to use PDF.js or similar libraries */}
-                          <iframe
-                            src={fileUrl}
-                            width="100%"
-                            height="100%"
-                            frameBorder="0"
-                            title="File Preview"
-                            style={{
-                              border: "1px solid #e9ecef",
-                              borderRadius: "4px",
-                            }}
-                            onError={() => {
-                              console.log("Iframe failed to load, file might not be supported for direct preview");
-                            }}
-                          />
-                          
-                          {/* Alternative: Show message for unsupported files */}
-                          <Box sx={{ mt: 2, textAlign: "center" }}>
-                            <Typography variant="body2" color="text.secondary">
-                              Nếu file không hiển thị, hãy sử dụng nút "Xem toàn màn hình" hoặc "Tải xuống"
-                            </Typography>
-                          </Box>
-                        </Box>
-                      ) : (
-                        <Box sx={{ p: 3, textAlign: "center", backgroundColor: "#f8f9fa", borderRadius: 1, border: "1px solid #e9ecef" }}>
-                          <Typography variant="body2" color="text.secondary">
-                            Không có nội dung preview cho loại file này.
-                          </Typography>
-                        </Box>
-                      )}
-
-                      <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: "block", fontStyle: "italic" }}>
-                        Debug: Type: {selectedFile?.type || getFileTypeFromName(selectedFile?.name)} | Processing: {fileProcessing ? "yes" : "no"} | URL: {fileUrl ? "yes" : "no"}
-                      </Typography>
-                    </Box>
-                  )}
+                  <Box sx={{ minHeight: 200, maxHeight: 600, overflow: "auto" }}>
+                    {renderPreviewContent()}
+                  </Box>
                 </CardContent>
               </Card>
             )}
 
-            <input type="file" hidden ref={fileInputRef} onChange={handleFileChange} accept=".pdf,.doc,.docx,.txt" />
+            <input 
+              type="file" 
+              hidden 
+              ref={fileInputRef} 
+              onChange={handleFileChange} 
+              accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.doc,.docx,.txt" 
+            />
           </Box>
         </Grid>
 
@@ -588,26 +687,7 @@ const CreateExam: React.FC = () => {
         </DialogTitle>
         <DialogContent sx={{ p: 0 }}>
           <Box sx={{ width: "100%", height: "100%" }}>
-            {textPreview ? (
-              <Box sx={{ p: 3, height: "100%", overflow: "auto" }}>
-                <Box component="pre" sx={{ whiteSpace: "pre-wrap", fontFamily: "monospace" }}>
-                  {textPreview}
-                </Box>
-              </Box>
-            ) : fileUrl ? (
-              <iframe
-                src={fileUrl}
-                width="100%"
-                height="100%"
-                frameBorder="0"
-                title="Full Screen File Preview"
-                style={{ border: "none" }}
-              />
-            ) : (
-              <Box sx={{ p: 4 }}>
-                <Typography>Không có preview để hiển thị.</Typography>
-              </Box>
-            )}
+            {renderFullscreenPreviewContent()}
           </Box>
         </DialogContent>
       </Dialog>
